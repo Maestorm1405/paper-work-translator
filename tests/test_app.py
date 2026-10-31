@@ -141,7 +141,7 @@ def test_photo_is_sent_as_image_using_detected_type(monkeypatch):
     fake = FakeClient()
     client = make(fake, monkeypatch)
     # The browser label says JPEG, but the bytes are PNG; the bytes win.
-    response = client.post("/api/translate", files={"file": ("paper.jpg", PNG, "image/jpeg")})
+    response = client.post("/api/translate", files={"files": ("paper.jpg", PNG, "image/jpeg")})
     assert response.status_code == 200
     assert response.json()["original_text"] == GOOD_RESULT["original_text"]  # the model's transcription
     block = fake.calls[0]["messages"][0]["content"][0]
@@ -152,12 +152,41 @@ def test_photo_is_sent_as_image_using_detected_type(monkeypatch):
 def test_pdf_is_sent_as_document_before_text(monkeypatch):
     fake = FakeClient()
     client = make(fake, monkeypatch)
-    response = client.post("/api/translate", files={"file": ("paper.pdf", PDF, "application/pdf")}, data={"text": "page 2 is missing"})
+    response = client.post("/api/translate", files={"files": ("paper.pdf", PDF, "application/pdf")}, data={"text": "page 2 is missing"})
     assert response.status_code == 200
     content = fake.calls[0]["messages"][0]["content"]
     assert content[0]["type"] == "document"
     assert content[0]["source"]["media_type"] == "application/pdf"
     assert "page 2 is missing" in content[1]["text"]
+
+
+def test_several_scanned_pages_are_sent_in_order(monkeypatch):
+    fake = FakeClient()
+    client = make(fake, monkeypatch)
+    jpeg = b"\xff\xd8\xff" + b"\x00" * 64
+    pages = [("files", ("page-1.jpg", jpeg, "image/jpeg")), ("files", ("page-2.png", PNG, "image/png")),
+             ("files", ("page-3.pdf", PDF, "application/pdf"))]
+    response = client.post("/api/translate", files=pages)
+    assert response.status_code == 200
+    content = fake.calls[0]["messages"][0]["content"]
+    assert [block["type"] for block in content[:3]] == ["image", "image", "document"]
+    assert content[0]["source"]["media_type"] == "image/jpeg" and content[1]["source"]["media_type"] == "image/png"
+    assert "These 3 files are pages of the same paper, in order." == content[3]["text"]
+
+
+def test_rejects_too_many_pages(monkeypatch):
+    fake = FakeClient()
+    pages = [("files", (f"p{i}.png", PNG, "image/png")) for i in range(11)]
+    response = make(fake, monkeypatch).post("/api/translate", files=pages)
+    assert response.status_code == 413 and "10 pages" in response.json()["error"]
+    assert fake.calls == []
+
+
+def test_rejects_pages_that_are_too_big_together(monkeypatch):
+    page = PNG + b"\x00" * (4 * 1024 * 1024)
+    pages = [("files", (f"p{i}.png", page, "image/png")) for i in range(6)]
+    response = make(FakeClient(), monkeypatch).post("/api/translate", files=pages)
+    assert response.status_code == 413 and "together" in response.json()["error"]
 
 
 def test_requires_some_input(monkeypatch):
@@ -170,14 +199,14 @@ def test_requires_some_input(monkeypatch):
 
 def test_rejects_unsupported_files(monkeypatch):
     client = make(FakeClient(), monkeypatch)
-    response = client.post("/api/translate", files={"file": ("notes.docx", b"PK\x03\x04 not a photo", "application/octet-stream")})
+    response = client.post("/api/translate", files={"files": ("notes.docx", b"PK\x03\x04 not a photo", "application/octet-stream")})
     assert response.status_code == 415
 
 
 def test_rejects_oversized_images(monkeypatch):
     client = make(FakeClient(), monkeypatch)
     big = PNG + b"\x00" * (5 * 1024 * 1024)
-    response = client.post("/api/translate", files={"file": ("big.png", big, "image/png")})
+    response = client.post("/api/translate", files={"files": ("big.png", big, "image/png")})
     assert response.status_code == 413
     assert "5 MB" in response.json()["error"]
 

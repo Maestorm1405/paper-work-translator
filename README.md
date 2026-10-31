@@ -12,6 +12,19 @@ Built for a hackathon on accessibility tools for navigating the medical care sys
 
 ![The app showing a hospital bill in plain language, with a red "Things to double-check" box explaining that the charges add up to $4,340.00 but the bill says $4,430.00](docs/screenshot-bill-check.png)
 
+## Download the app
+
+**[Download from the Releases page](https://github.com/Maestorm1405/paper-work-translator/releases/latest)**: a real app
+with its own window for **Mac (Apple silicon)** and **Windows**. No browser, no Terminal, no Python needed.
+
+- **Mac:** unzip, drag the app to Applications, and open it. The first time, macOS says it can't check the app because
+  it isn't signed by Apple yet: click **Done**, then go to **System Settings → Privacy & Security → Open Anyway**.
+- **Windows:** extract the zip, open the folder, and run **Medical Paperwork Translator.exe**. If you see "Windows
+  protected your PC", click **More info → Run anyway**.
+
+The app adds dates straight to your calendar app (Apple Calendar or Outlook), scans papers with your camera, and keeps
+your API key on your computer only. Set the key under **Translation service (API key)** at the top of the app.
+
 ## Features
 
 | | |
@@ -25,6 +38,7 @@ Built for a hackathon on accessibility tools for navigating the medical care sys
 | **Add to calendar** | Appointments and deadlines go straight to a calendar file (iPhone, Android, Outlook) or Google Calendar, with a reminder the day before. |
 | **Print or share** | A clean one-page summary with lines for notes, to bring to an appointment or send to a caregiver. |
 | **Display settings** | Large and extra-large text, light, dark, and high-contrast colors, and extra spacing between lines, words, and letters. Saved in the browser. |
+| **Camera scanner** | Scan one page or many with the camera. Each picture is checked, and the app tells you (out loud if you like) when it's too dark or blurry. |
 | **Works offline for demos** | Three made-up sample papers work with no API key and no internet. |
 
 ## Try it in 2 minutes
@@ -37,10 +51,11 @@ cd paper-work-translator
 python3 -m venv .venv              # Windows: py -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python -m paperwork_translator
+python -m paperwork_translator.desktop     # the app in its own window
+# or: python -m paperwork_translator      # in your browser at http://127.0.0.1:8000
 ```
 
-Open <http://localhost:8000> and press **Try: A hospital bill**. You'll see:
+In the browser version, open <http://127.0.0.1:8000> and press **Try: A hospital bill**. You'll see:
 
 1. A plain-language explanation of the bill.
 2. **Things to double-check**: the charges add up to $4,340.00, but the bill says $4,430.00. A blood test is

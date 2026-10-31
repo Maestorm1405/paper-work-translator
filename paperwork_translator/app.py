@@ -39,6 +39,8 @@ STATIC_DIR = Path(__file__).parent / "static"
 SAMPLES_DIR = Path(__file__).parent / "samples"
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_PDF_BYTES = 20 * 1024 * 1024
+MAX_FILES = 10
+MAX_TOTAL_BYTES = 20 * 1024 * 1024  # stays under Claude's request size once encoded
 MAX_TEXT_CHARS = 100_000
 MAX_QUESTION_CHARS = 1_000
 MAX_HISTORY = 10
@@ -51,6 +53,30 @@ NEEDS_SERVICE = (
 
 def _error(message: str, status_code: int) -> JSONResponse:
     return JSONResponse({"error": message}, status_code=status_code)
+
+
+def read_uploads(uploads: list[UploadFile]) -> list[tuple[bytes, str]] | JSONResponse:
+    """Check uploaded photos/PDFs and return (bytes, media type) pairs, or an error response."""
+    uploads = [u for u in uploads if u is not None and u.filename]
+    if len(uploads) > MAX_FILES:
+        return _error(f"Please add {MAX_FILES} pages or fewer at a time.", 413)
+    files, total = [], 0
+    for upload in uploads:
+        data = upload.file.read(MAX_PDF_BYTES + 1)
+        if not data:
+            continue
+        media_type = sniff_media_type(data)
+        if media_type not in (*IMAGE_TYPES, PDF_TYPE):
+            return _error("Please choose photos (JPG, PNG, WebP, or GIF) or a PDF file.", 415)
+        limit = MAX_PDF_BYTES if media_type == PDF_TYPE else MAX_IMAGE_BYTES
+        if len(data) > limit:
+            size = "20 MB" if media_type == PDF_TYPE else "5 MB"
+            return _error(f"One of the files is too big. Please use files smaller than {size}.", 413)
+        total += len(data)
+        if total > MAX_TOTAL_BYTES:
+            return _error("Those files are too big together. Please send fewer pages at a time.", 413)
+        files.append((data, media_type))
+    return files
 
 
 def _normalize_question(q: str) -> str:
@@ -140,6 +166,7 @@ def create_app(client_factory: Callable[[], anthropic.Anthropic] | None = None) 
         return {
             "api_key_configured": key_configured(),
             "model": model,
+            "max_files": MAX_FILES,
             "languages": [
                 {"code": code, "name": name, "native_name": native, "rtl": code in RTL_LANGUAGES}
                 for code, (name, native) in LANGUAGES.items()
@@ -152,7 +179,7 @@ def create_app(client_factory: Callable[[], anthropic.Anthropic] | None = None) 
     @app.post("/api/translate")
     def translate_paper(
         text: str | None = Form(None),
-        file: UploadFile | None = File(None),
+        files: list[UploadFile] = File(default_factory=list),
         sample_id: str | None = Form(None),
         language: str = Form("en"),
         reading_level: str = Form("simple"),
@@ -163,6 +190,7 @@ def create_app(client_factory: Callable[[], anthropic.Anthropic] | None = None) 
             return _error("Please choose Simple or Very simple.", 400)
         style = {"language": language, "reading_level": reading_level}
 
+        uploads: list[tuple[bytes, str]] = []
         if sample_id:
             sample = samples.get(sample_id)
             if sample is None:
@@ -177,33 +205,23 @@ def create_app(client_factory: Callable[[], anthropic.Anthropic] | None = None) 
             text = sample["paper_text"]
         else:
             sample = None
+            uploads_or_error = read_uploads(files)
+            if isinstance(uploads_or_error, JSONResponse):
+                return uploads_or_error
+            uploads = uploads_or_error
 
         text = (text or "").strip() or None
         if text and len(text) > MAX_TEXT_CHARS:
             return _error("That's a lot of text. Please paste one or two pages at a time.", 413)
-
-        file_bytes = media_type = None
-        if sample is None and file is not None and file.filename:
-            file_bytes = file.file.read(MAX_PDF_BYTES + 1) or None
-            if file_bytes is not None:
-                media_type = sniff_media_type(file_bytes)
-                if media_type not in (*IMAGE_TYPES, PDF_TYPE):
-                    return _error("Please choose a photo (JPG, PNG, WebP, or GIF) or a PDF file.", 415)
-                limit = MAX_PDF_BYTES if media_type == PDF_TYPE else MAX_IMAGE_BYTES
-                if len(file_bytes) > limit:
-                    size = "20 MB" if media_type == PDF_TYPE else "5 MB"
-                    return _error(f"That file is too big. Please use a file smaller than {size}.", 413)
-
-        if file_bytes is None and text is None:
+        if not uploads and text is None:
             return _error("Please add a photo or PDF of your paper, or paste its words.", 400)
 
         try:
-            result = translate(make_client(), text=text, file_bytes=file_bytes, media_type=media_type,
-                               model=model, effort=effort, **style)
+            result = translate(make_client(), text=text, files=uploads, model=model, effort=effort, **style)
         except TranslationError as exc:
             return _error(exc.message, exc.status_code)
         result = result.model_dump(mode="json")
-        if file_bytes is None:
+        if not uploads:
             result["original_text"] = text  # we already have the exact words; don't rely on a copy
         return finish(result, source="ai", sample=sample, **style)
 

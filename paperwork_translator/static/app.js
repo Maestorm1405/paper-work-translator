@@ -3,6 +3,7 @@
 import { setupSettings } from "./settings.js";
 import { speechSupported, hasVoiceFor, createReader, dictationSupported, createDictation } from "./speech.js";
 import { buildICS, googleCalendarUrl, downloadFile } from "./calendar.js";
+import { createScanner } from "./scanner.js";
 
 const MAX_IMAGE_SIDE = 2576; // Claude's largest image size; bigger photos are shrunk before upload
 const MAX_IMAGE_BYTES = 4.5 * 1024 * 1024;
@@ -16,7 +17,9 @@ const resultsBody = $("results-body");
 
 let languages = [];
 let currentResult = null;
-let lastRequest = null; // {sampleId} or {file, text}, so "Translate again" can resend it
+let lastRequest = null; // {sampleId} or {files, text}, so "Translate again" can resend it
+let pages = []; // [{file, url, problem}] photos or PDFs of the paper, in page order
+let maxFiles = 10;
 let askHistory = [];
 let sections = []; // [{title, parts: [{el, speech, lang}]}] for read-aloud
 
@@ -41,6 +44,79 @@ function clearMessages() {
   for (const id of ["error", "results-error", "ask-error"]) $(id).hidden = true;
 }
 
+// ---------- Desktop app ----------
+// In the downloadable app the page runs in its own window, and window.pywebview.api reaches the computer:
+// the calendar app, file saving, links, and the saved API key. In a browser these fall back to web versions.
+
+const desktopApi = () => window.pywebview?.api;
+let desktopReady = false;
+
+async function addToCalendar(events, filename) {
+  const ics = buildICS(events);
+  const api = desktopApi();
+  if (api) {
+    const result = await api.add_to_calendar(ics, filename).catch(() => null);
+    if (result?.ok) {
+      setStatus("Your calendar app opened with the event. Check the details there, then save it.");
+      return;
+    }
+    showError(result?.error || "Couldn't open your calendar app, so the calendar file was saved instead.");
+  }
+  downloadFile(filename, ics, "text/calendar");
+}
+
+function openLink(url) {
+  const api = desktopApi();
+  if (api) api.open_url(url);
+  else window.open(url, "_blank", "noopener");
+}
+
+async function refreshKeyStatus() {
+  const { configured } = await desktopApi().api_key_status();
+  $("key-status").textContent = configured ? "A key is saved on this computer." : "No key saved yet.";
+  $("remove-key").hidden = !configured;
+  $("setup-warning").hidden = configured;
+}
+
+function setupDesktop() {
+  if (desktopReady || !desktopApi()) return;
+  desktopReady = true;
+  document.documentElement.classList.add("desktop-app");
+  $("key-settings").hidden = false;
+  $("setup-how").textContent =
+    "To translate your own papers, open \u201cTranslation service (API key)\u201d at the top of this window and paste your key.";
+  for (const button of document.querySelectorAll(".calendar-download")) button.textContent = "Add to my calendar";
+  refreshKeyStatus();
+}
+
+$("key-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const key = $("api-key").value.trim();
+  if (!key) {
+    $("key-status").textContent = "Please paste your key first.";
+    $("api-key").focus();
+    return;
+  }
+  const result = await desktopApi().save_api_key(key);
+  if (!result.ok) {
+    $("key-status").textContent = result.error;
+    return;
+  }
+  $("api-key").value = "";
+  await refreshKeyStatus();
+  $("key-status").textContent = "Key saved. You can now translate your own papers.";
+});
+
+$("remove-key").addEventListener("click", async () => {
+  await desktopApi().save_api_key("");
+  await refreshKeyStatus();
+  $("key-status").textContent = "Key removed. Only the sample papers work now.";
+  $("api-key").focus();
+});
+
+window.addEventListener("pywebviewready", setupDesktop);
+setupDesktop();
+
 const languageName = (code) => languages.find((l) => l.code === code)?.name || code;
 const isRtl = (code) => Boolean(languages.find((l) => l.code === code)?.rtl);
 
@@ -59,6 +135,7 @@ fetch("/api/config")
   .then((r) => r.json())
   .then((config) => {
     $("setup-warning").hidden = config.api_key_configured;
+    maxFiles = config.max_files || maxFiles;
     languages = config.languages;
     for (const select of document.querySelectorAll(".language-select")) fillLanguageSelect(select);
 
@@ -86,18 +163,128 @@ fetch("/api/config")
 
 const chosenLevel = (name) => document.querySelector(`input[name='${name}']:checked`)?.value || "simple";
 
-// ---------- Choosing a file ----------
+// ---------- Pages: photos, scans, or a PDF of the paper ----------
+
+function renderPages() {
+  const list = $("page-list");
+  list.replaceChildren(...pages.map((page, i) => {
+    const li = document.createElement("li");
+    li.className = "page-item";
+    if (page.url) {
+      const img = document.createElement("img");
+      img.src = page.url;
+      img.alt = "";
+      img.className = "page-thumb";
+      li.append(img);
+    } else {
+      const icon = document.createElement("span");
+      icon.className = "page-thumb page-thumb-pdf";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "PDF";
+      li.append(icon);
+    }
+    const text = document.createElement("span");
+    text.className = "page-text";
+    const name = document.createElement("strong");
+    name.textContent = page.url ? `Page ${i + 1}` : `Page ${i + 1}: ${page.file.name}`;
+    text.append(name);
+    if (page.problem) {
+      const note = document.createElement("span");
+      note.className = "page-problem";
+      note.textContent = page.problem;
+      text.append(note);
+    }
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "button-secondary";
+    remove.textContent = "Remove";
+    remove.setAttribute("aria-label", `Remove page ${i + 1}`);
+    remove.addEventListener("click", () => removePage(i));
+    li.append(text, remove);
+    return li;
+  }));
+  $("pages").hidden = pages.length === 0;
+}
+
+function addPage(file, problem = null) {
+  if (pages.length >= maxFiles) {
+    showError(`You can add up to ${maxFiles} pages at a time.`);
+    return pages.length;
+  }
+  const url = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+  pages.push({ file, url, problem });
+  renderPages();
+  return pages.length;
+}
+
+function removePage(index) {
+  const [page] = pages.splice(index, 1);
+  if (page?.url) URL.revokeObjectURL(page.url);
+  renderPages();
+  $("pages-status").textContent = `Page ${index + 1} removed. ${pages.length} ${pages.length === 1 ? "page" : "pages"} left.`;
+  const buttons = $("page-list").querySelectorAll("button");
+  (buttons[Math.min(index, buttons.length - 1)] || fileInput).focus();
+}
+
+function clearPages() {
+  for (const page of pages) if (page.url) URL.revokeObjectURL(page.url);
+  pages = [];
+  renderPages();
+}
 
 fileInput.addEventListener("change", () => {
-  const file = fileInput.files[0];
-  $("file-chosen").textContent = file ? `Chosen: ${file.name}` : "";
-  $("clear-file").hidden = !file;
+  for (const file of fileInput.files) addPage(file);
+  const added = fileInput.files.length;
+  if (added) $("pages-status").textContent = `${added} ${added === 1 ? "file" : "files"} added. ${pages.length} ${pages.length === 1 ? "page" : "pages"} in total.`;
+  fileInput.value = ""; // so the same file can be picked again
 });
 
-$("clear-file").addEventListener("click", () => {
-  fileInput.value = "";
-  fileInput.dispatchEvent(new Event("change"));
-  fileInput.focus();
+// ---------- Camera scanner ----------
+
+const scanner = createScanner({
+  elements: {
+    section: $("scanner"),
+    heading: $("scanner-heading"),
+    video: $("camera-view"),
+    status: $("scan-status"),
+    error: $("scan-error"),
+    takeButton: $("take-picture"),
+    torchButton: $("torch-button"),
+    switchButton: $("switch-camera"),
+    doneButton: $("scan-done"),
+    filesButton: $("scan-use-files"),
+    count: $("scan-count"),
+    flash: $("camera-flash"),
+  },
+  onPage: (file, problem) => addPage(file, problem),
+  onClose: (scanned) => {
+    $("input-section").hidden = false;
+    if (scanned) {
+      $("pages-status").textContent = `${scanned} ${scanned === 1 ? "page" : "pages"} scanned. Check the list, then press Translate.`;
+      $("pages-heading").setAttribute("tabindex", "-1");
+      $("pages-heading").focus();
+    } else {
+      $("scan-button").focus();
+    }
+  },
+  speak: (message) => {
+    if (!$("speak-tips").checked || !speechSupported) return;
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = "en-US";
+    speechSynthesis.speak(utterance);
+  },
+});
+
+$("scan-button").addEventListener("click", () => {
+  clearMessages();
+  $("input-section").hidden = true;
+  scanner.open();
+});
+
+$("scan-use-files").addEventListener("click", () => {
+  scanner.close();
+  fileInput.click();
 });
 
 async function decodeImage(file) {
@@ -154,7 +341,7 @@ async function runTranslation(request, language, readingLevel, button) {
   try {
     const body = new FormData();
     if (request.sampleId) body.append("sample_id", request.sampleId);
-    if (request.file) body.append("file", await prepareFile(request.file));
+    for (const file of request.files || []) body.append("files", await prepareFile(file));
     if (request.text) body.append("text", request.text);
     body.append("language", language);
     body.append("reading_level", readingLevel);
@@ -179,15 +366,14 @@ async function runTranslation(request, language, readingLevel, button) {
 
 $("translate-form").addEventListener("submit", (event) => {
   event.preventDefault();
-  const file = fileInput.files[0];
   const text = textInput.value.trim();
-  if (!file && !text) {
+  if (!pages.length && !text) {
     clearMessages();
-    showError("Please add a photo or PDF of your paper, or paste its words. Or try a sample paper.");
-    fileInput.focus();
+    showError("Please scan your paper, add photos or a PDF of it, or paste its words. Or try a sample paper.");
+    $("scan-button").focus();
     return;
   }
-  lastRequest = { file, text };
+  lastRequest = { files: pages.map((p) => p.file), text };
   runTranslation(lastRequest, $("language").value, chosenLevel("reading-level"), $("translate-button"));
 });
 
@@ -356,8 +542,8 @@ function calendarControls(todo, index) {
   buttons.className = "button-row";
   const download = document.createElement("button");
   download.type = "button";
-  download.className = "button-primary";
-  download.textContent = "Download calendar file";
+  download.className = "button-primary calendar-download";
+  download.textContent = desktopApi() ? "Add to my calendar" : "Download calendar file";
   const google = document.createElement("button");
   google.type = "button";
   google.className = "button-secondary";
@@ -366,7 +552,9 @@ function calendarControls(todo, index) {
 
   const hint = document.createElement("p");
   hint.className = "hint";
-  hint.textContent = "The calendar file works with iPhone, Android, Outlook, and most calendar apps. It adds a reminder 1 day before.";
+  hint.textContent = desktopApi()
+    ? "This opens your calendar app, like Apple Calendar or Outlook, with the event ready to save. It adds a reminder 1 day before."
+    : "The calendar file works with iPhone, Android, Outlook, and most calendar apps. It adds a reminder 1 day before.";
 
   function event() {
     if (!dateInput.value) {
@@ -380,11 +568,11 @@ function calendarControls(todo, index) {
   }
   download.addEventListener("click", () => {
     const e = event();
-    if (e) downloadFile("appointment.ics", buildICS([e]), "text/calendar");
+    if (e) addToCalendar([e], "appointment.ics");
   });
   google.addEventListener("click", () => {
     const e = event();
-    if (e) window.open(googleCalendarUrl(e), "_blank", "noopener");
+    if (e) openLink(googleCalendarUrl(e));
   });
   toggle.addEventListener("click", () => {
     const open = panel.hidden;
@@ -520,7 +708,7 @@ function showResults(data) {
 
 $("calendar-all").addEventListener("click", () => {
   const events = currentResult.todos.filter((t) => t.date).map((t) => calendarEvent(t, t.date, t.time));
-  downloadFile("dates-from-my-paper.ics", buildICS(events), "text/calendar");
+  addToCalendar(events, "dates-from-my-paper.ics");
 });
 
 $("start-over").addEventListener("click", () => {
@@ -528,7 +716,7 @@ $("start-over").addEventListener("click", () => {
   dictation?.stop();
   clearMessages();
   $("translate-form").reset();
-  fileInput.dispatchEvent(new Event("change"));
+  clearPages();
   $("question").value = "";
   results.hidden = true;
   $("input-section").hidden = false;

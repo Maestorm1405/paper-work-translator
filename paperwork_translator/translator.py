@@ -225,20 +225,22 @@ def _style_instructions(language: str, reading_level: str) -> str:
 
 def build_content(
     text: str | None,
-    file_bytes: bytes | None,
-    media_type: str | None,
+    files: list[tuple[bytes, str]],
     language: str = "en",
     reading_level: str = "simple",
 ) -> list[dict[str, Any]]:
+    """files are (bytes, media type) pairs: photos or scans of pages in order, or PDFs."""
     content: list[dict[str, Any]] = []
-    if file_bytes is not None:
+    for file_bytes, media_type in files:
         data = base64.standard_b64encode(file_bytes).decode("ascii")
         if media_type == PDF_TYPE:
             content.append({"type": "document", "source": {"type": "base64", "media_type": PDF_TYPE, "data": data}})
         else:
             content.append({"type": "image", "source": {"type": "base64", "media_type": media_type, "data": data}})
+    if len(files) > 1:
+        content.append({"type": "text", "text": f"These {len(files)} files are pages of the same paper, in order."})
     if text:
-        label = "Words the person typed or pasted from the paper" if file_bytes is None else "Extra words the person added"
+        label = "Extra words the person added" if files else "Words the person typed or pasted from the paper"
         content.append({"type": "text", "text": f"{label}:\n<paper>\n{text}\n</paper>"})
     content.append(
         {
@@ -322,14 +324,13 @@ def translate(
     client: anthropic.Anthropic,
     *,
     text: str | None = None,
-    file_bytes: bytes | None = None,
-    media_type: str | None = None,
+    files: list[tuple[bytes, str]] | None = None,
     language: str = "en",
     reading_level: str = "simple",
     model: str = DEFAULT_MODEL,
     effort: str = DEFAULT_EFFORT,
 ) -> Translation:
-    content = build_content(text, file_bytes, media_type, language, reading_level)
+    content = build_content(text, files or [], language, reading_level)
     raw = _call_claude(client, system=SYSTEM_PROMPT, content=content, model=model, effort=effort, schema=OUTPUT_SCHEMA)
     try:
         return Translation.model_validate_json(raw)

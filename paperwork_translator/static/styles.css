@@ -290,6 +290,39 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .print-only { display: none; }
 
+/* Scanning and pages */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.button-large { min-height: 60px; font-size: 1.15em; padding: 0.75rem 1.5rem; }
+.scan-field .button-large { width: 100%; }
+
+.pages { margin: 1rem 0; }
+.page-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.page-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--panel); border-radius: 8px; padding: 0.5rem 0.75rem;
+}
+.page-thumb { width: 56px; height: 72px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); flex: none; }
+.page-thumb-pdf { display: grid; place-items: center; font-weight: 700; font-size: 0.85em; }
+.page-text { flex: 1; min-width: 0; }
+.page-text strong, .page-problem { display: block; }
+.page-problem { color: var(--high); }
+
+.scanner { padding: 0.5rem 0 1rem; }
+.camera-frame { position: relative; background: #000; border-radius: 8px; overflow: hidden; }
+.camera-frame video { display: block; width: 100%; max-height: 60vh; object-fit: contain; }
+.camera-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.camera-flash.flash-on { animation: camera-flash 0.35s ease-out; }
+@keyframes camera-flash { from { opacity: 0.8; } to { opacity: 0; } }
+.scan-count { font-weight: 700; }
+#torch-button[aria-pressed="true"] { background: var(--primary); color: var(--primary-text); }
+
+.key-form input { width: 100%; max-width: 32rem; }
+.key-status { font-weight: 600; }
+.theme-contrast .page-item { border: 2px solid var(--border); }
+
 /* Printing: a clean summary in black and white, without buttons or forms. */
 @media print {
   :root, :root[class] {
@@ -299,7 +332,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     font-size: 12pt;
   }
   body { line-height: 1.45; letter-spacing: normal; word-spacing: normal; }
-  .site-header, #input-section, .read-aloud, .result-actions, .rewrite, .original, #ask-form,
+  .site-header, #input-section, #scanner, .read-aloud, .result-actions, .rewrite, .original, #ask-form,
   #suggested, .ask > .hint, .read-section, .calendar, .skip-link, #start-over, .status, .notice-error,
   .reading-level-note { display: none !important; }
   .print-only { display: block; }

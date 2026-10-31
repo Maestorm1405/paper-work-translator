@@ -46,6 +46,23 @@
         </fieldset>
       </div>
     </details>
+
+    <details class="settings" id="key-settings" hidden>
+      <summary>Translation service (API key)</summary>
+      <form class="settings-body key-form" id="key-form" novalidate>
+        <p class="hint" id="key-help">
+          The sample papers work without a key. To translate your own papers, paste an Anthropic API key.
+          It is saved only on this computer.
+        </p>
+        <label for="api-key">Anthropic API key</label>
+        <input id="api-key" type="password" autocomplete="off" spellcheck="false" aria-describedby="key-help key-status">
+        <div class="button-row">
+          <button type="submit" class="button-primary">Save key</button>
+          <button type="button" id="remove-key" class="button-secondary">Remove saved key</button>
+        </div>
+        <p id="key-status" class="key-status" role="status" aria-live="polite"></p>
+      </form>
+    </details>
   </header>
 
   <main id="main">
@@ -54,8 +71,8 @@
 
       <p id="setup-warning" class="notice notice-warning" hidden>
         This app isn't connected to its translation service yet, so only the sample papers work.
-        To translate your own papers, add an Anthropic API key to the <code>.env</code> file and restart.
-        The README explains how.
+        <span id="setup-how">To translate your own papers, add an Anthropic API key to the <code>.env</code> file and restart.
+        The README explains how.</span>
       </p>
 
       <div class="samples" id="samples" hidden>
@@ -65,12 +82,21 @@
       </div>
 
       <form id="translate-form" novalidate>
+        <div class="field scan-field">
+          <button type="button" id="scan-button" class="button-primary button-large">Scan your paper with the camera</button>
+          <p class="hint">Scan one page or many. The app checks that each picture is clear.</p>
+        </div>
+
         <div class="field">
-          <label for="file-input">Take a photo of your paper, or choose a photo or PDF</label>
-          <p class="hint" id="file-hint">Make sure all the words are in the picture and easy to see.</p>
-          <input id="file-input" name="file" type="file" accept="image/*,application/pdf" aria-describedby="file-hint">
-          <p id="file-chosen" class="file-chosen" aria-live="polite"></p>
-          <button type="button" id="clear-file" class="button-secondary" hidden>Remove this file</button>
+          <label for="file-input">Or choose photos or a PDF of your paper</label>
+          <p class="hint" id="file-hint">You can pick several photos, one for each page. Make sure all the words are easy to see.</p>
+          <input id="file-input" name="files" type="file" accept="image/*,application/pdf" multiple aria-describedby="file-hint">
+        </div>
+
+        <div id="pages" class="pages" hidden>
+          <h3 id="pages-heading">Your pages</h3>
+          <ol id="page-list" class="page-list" aria-labelledby="pages-heading"></ol>
+          <p id="pages-status" class="visually-hidden" role="status" aria-live="polite"></p>
         </div>
 
         <p class="divider" aria-hidden="true">or</p>
@@ -102,6 +128,28 @@
 
       <div id="status" class="status" role="status" aria-live="polite"></div>
       <div id="error" class="notice notice-error" role="alert" hidden></div>
+    </section>
+
+    <section id="scanner" class="scanner" aria-labelledby="scanner-heading" hidden>
+      <h2 id="scanner-heading" tabindex="-1">Scan your paper</h2>
+      <p class="hint">Lay the page flat in good light. Fill the camera view with the page and hold still.</p>
+      <div class="camera-frame">
+        <video id="camera-view" playsinline muted autoplay aria-label="Camera view"></video>
+        <div id="camera-flash" class="camera-flash" aria-hidden="true"></div>
+      </div>
+      <div id="scan-status" class="status" role="status" aria-live="polite"></div>
+      <div id="scan-error" class="notice notice-error" role="alert" hidden></div>
+      <div class="button-row">
+        <button type="button" id="take-picture" class="button-primary button-large">Take picture</button>
+        <button type="button" id="torch-button" class="button-secondary" aria-pressed="false" hidden>Light</button>
+        <button type="button" id="switch-camera" class="button-secondary" hidden>Switch camera</button>
+      </div>
+      <label class="choice"><input type="checkbox" id="speak-tips"> Speak tips out loud</label>
+      <p id="scan-count" class="scan-count"></p>
+      <div class="button-row">
+        <button type="button" id="scan-done" class="button-primary">Done scanning</button>
+        <button type="button" id="scan-use-files" class="button-secondary" hidden>Choose photos instead</button>
+      </div>
     </section>
 
     <section id="results" aria-labelledby="results-heading" hidden>
