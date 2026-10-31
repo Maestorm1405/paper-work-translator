@@ -1,0 +1,127 @@
+{
+  "id": "denial",
+  "order": 3,
+  "title": "An insurance letter",
+  "description": "A health plan says no to paying for a power wheelchair.",
+  "paper_text": "BlueRiver Health Plan\nP.O. Box 5520, Riverside, CA 92501\n\nOctober 20, 2026\n\nMaria Lopez\nMember ID: BRH-449120\nDate of birth: 03/14/1991\n\nNOTICE OF ADVERSE BENEFIT DETERMINATION\n\nRe: Request for Group 2 power wheelchair, captain's chair (HCPCS K0823)\nRequesting provider: Dr. Ana Patel\nReference #: UM-2026-118734\nMember date of birth on request: 03/14/1961\n\nDear Maria Lopez,\n\nWe reviewed the request for the item listed above. This request is DENIED.\n\nReason: The documentation submitted does not establish medical necessity per Medical Policy DME-112. Records do not demonstrate that the member's mobility limitation cannot be sufficiently resolved by the use of an optimally configured manual wheelchair or power-operated vehicle (scooter) in the home.\n\nThis decision was made by a physician reviewer, M. Grant, MD.\n\nYOUR RIGHT TO APPEAL\nYou or your authorized representative may file an appeal. Your appeal must be received within 180 days of the date of this notice (by April 18, 2027). Send a written appeal to the address above or call Member Services. Include a letter of medical necessity from your provider and any records that support your request, such as a mobility evaluation by a physical or occupational therapist.\n\nIf waiting could seriously harm your health, you may ask for an expedited (fast) appeal. We will decide an expedited appeal within 72 hours.\n\nYou may request free copies of all documents and the medical policy used to make this decision.\n\nMember Services: 1-800-555-0199 (TTY: 711), Monday-Friday, 8 AM-8 PM.",
+  "results": {
+    "simple": {
+      "is_medical_document": true,
+      "document_type": "Insurance denial letter",
+      "summary": "This letter is from your health plan, BlueRiver Health Plan. It says they will not pay for the power wheelchair your doctor asked for. You have the right to appeal.",
+      "warning_signs": [],
+      "concerns": [
+        {
+          "severity": "high",
+          "issue": "Your date of birth is different in 2 places. The top of the letter says 03/14/1991. The part about the request says 03/14/1961.",
+          "why_it_matters": "If the request had the wrong date of birth, your records may have been mixed up. That could have affected the decision.",
+          "what_to_do": "Call Member Services at 1-800-555-0199 (TTY 711) and ask them to fix it. Tell Dr. Ana Patel's office too."
+        },
+        {
+          "severity": "medium",
+          "issue": "Your appeal must reach the plan by April 18, 2027.",
+          "why_it_matters": "If you miss this date, you may lose your chance to appeal.",
+          "what_to_do": "Put the date on your calendar. Start early, because getting a letter from your doctor can take time."
+        },
+        {
+          "severity": "low",
+          "issue": "The letter says they used Medical Policy DME-112, but the policy is not included.",
+          "why_it_matters": "Knowing the rules they used can help you and your doctor write a stronger appeal.",
+          "what_to_do": "Ask Member Services for a free copy of the policy and all the documents they used."
+        }
+      ],
+      "key_points": [
+        "Your health plan said no to paying for a power wheelchair.",
+        "They said your records don't show that a manual wheelchair or a scooter can't meet your needs at home.",
+        "A doctor who works for the plan, M. Grant, MD, made this decision.",
+        "You have the right to appeal. This means asking them to change their decision.",
+        "Someone you choose can appeal for you.",
+        "If waiting could seriously harm your health, you can ask for a fast appeal. They will decide in 72 hours.",
+        "You can ask for free copies of the papers and rules they used."
+      ],
+      "todos": [
+        {"task": "Send your appeal. It must reach BlueRiver Health Plan by this date.", "when": "by April 18, 2027", "date": "2027-04-18", "time": null},
+        {"task": "Ask Dr. Ana Patel for a letter of medical necessity to send with your appeal.", "when": null, "date": null, "time": null},
+        {"task": "Gather records that support your request, like a mobility check by a physical or occupational therapist.", "when": null, "date": null, "time": null},
+        {"task": "Call Member Services at 1-800-555-0199 (TTY 711) to fix your date of birth or ask questions. They are open Monday to Friday, 8 AM to 8 PM.", "when": null, "date": null, "time": null}
+      ],
+      "medicines": [],
+      "words_to_know": [
+        {"term": "Adverse benefit determination", "meaning": "the plan decided not to pay for something."},
+        {"term": "Medical necessity", "meaning": "proof that you need something for your health."},
+        {"term": "Appeal", "meaning": "asking the plan to look again and change its decision."},
+        {"term": "Expedited", "meaning": "fast."},
+        {"term": "Authorized representative", "meaning": "someone you choose to act for you."},
+        {"term": "Power-operated vehicle", "meaning": "a scooter."},
+        {"term": "HCPCS", "meaning": "a code that names medical equipment."},
+        {"term": "TTY", "meaning": "a phone service for people who are deaf, hard of hearing, or have trouble speaking."}
+      ],
+      "questions_for_doctor": [
+        "What should my letter of medical necessity say?",
+        "Can I get a mobility evaluation by a physical or occupational therapist?",
+        "Should I ask for a fast appeal?",
+        "Can the plan fix my date of birth and look at the request again?"
+      ],
+      "unclear_parts": [],
+      "bill": null
+    },
+    "very_simple": {
+      "is_medical_document": true,
+      "document_type": "A letter from your health plan",
+      "summary": "Your health plan said no to your power wheelchair. You can ask them to change their mind.",
+      "warning_signs": [],
+      "concerns": [
+        {
+          "severity": "high",
+          "issue": "Your birthday is written 2 ways: 1991 and 1961.",
+          "why_it_matters": "A mistake may have changed their answer.",
+          "what_to_do": "Call 1-800-555-0199 to fix it. Tell Dr. Ana Patel too."
+        },
+        {
+          "severity": "medium",
+          "issue": "Your appeal is due April 18, 2027.",
+          "why_it_matters": "After that, it may be too late.",
+          "what_to_do": "Start your appeal soon."
+        }
+      ],
+      "key_points": [
+        "Your plan will not pay for the power wheelchair.",
+        "They think a manual wheelchair or scooter could work.",
+        "You can appeal. That means asking them to look again.",
+        "If you can't wait, ask for a fast appeal.",
+        "A fast appeal takes 72 hours."
+      ],
+      "todos": [
+        {"task": "Send your appeal.", "when": "by April 18, 2027", "date": "2027-04-18", "time": null},
+        {"task": "Ask Dr. Ana Patel for a letter about why you need it.", "when": null, "date": null, "time": null},
+        {"task": "Call 1-800-555-0199 with questions.", "when": "Monday to Friday, 8 AM to 8 PM", "date": null, "time": null}
+      ],
+      "medicines": [],
+      "words_to_know": [
+        {"term": "Appeal", "meaning": "asking them to look again."},
+        {"term": "Expedited", "meaning": "fast."},
+        {"term": "Medical necessity", "meaning": "proof you need it for your health."}
+      ],
+      "questions_for_doctor": [
+        "Can you write a letter for my appeal?",
+        "Should I ask for a fast appeal?"
+      ],
+      "unclear_parts": [],
+      "bill": null
+    }
+  },
+  "questions": [
+    {
+      "question": "How do I appeal?",
+      "answer": "Send a written appeal to BlueRiver Health Plan, P.O. Box 5520, Riverside, CA 92501, or call Member Services at 1-800-555-0199 (TTY 711). Your appeal must reach them by April 18, 2027. Include a letter of medical necessity from your doctor and any records that support your request."
+    },
+    {
+      "question": "Why was my wheelchair denied?",
+      "answer": "The letter says your records don't show that a manual wheelchair or a scooter can't meet your needs at home. So the plan decided the power wheelchair was not medically necessary, under their Medical Policy DME-112."
+    },
+    {
+      "question": "What is a letter of medical necessity?",
+      "answer": "It is a letter from your doctor that explains why you need the power wheelchair for your health. Your letter says to send one with your appeal. You can ask Dr. Ana Patel's office for it."
+    }
+  ]
+}

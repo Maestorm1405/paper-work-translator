@@ -1,0 +1,135 @@
+{
+  "id": "bill",
+  "order": 2,
+  "title": "A hospital bill",
+  "description": "A bill for an emergency room visit. It has some mistakes for the app to find.",
+  "paper_text": "RIVERSIDE GENERAL HOSPITAL\nPATIENT STATEMENT\n\nStatement date: 10/15/2026          Account #: 7730-11842\nPatient: Maria Lopez                Guarantor: Maria Lopez\nInsurance: BlueRiver Health Plan, Member ID BRH-449120\n\nDATE OF SERVICE  DESCRIPTION                                   AMOUNT\n09/22/2026       ED visit, level 4 (CPT 99284)                $1,250.00\n09/22/2026       CT abdomen/pelvis w/ contrast (CPT 74177)    $2,400.00\n09/22/2026       Comprehensive metabolic panel (CPT 80053)      $185.00\n09/22/2026       Comprehensive metabolic panel (CPT 80053)      $185.00\n09/22/2026       IV infusion, initial hour (CPT 96365)          $320.00\n\n                 TOTAL CHARGES                                $4,430.00\n10/05/2026       Insurance payment - BlueRiver Health Plan   -$3,100.00\n10/05/2026       Contractual adjustment                        -$620.00\n10/01/2026       Patient payment - thank you                    -$50.00\n\n                 AMOUNT DUE                                     $660.00\n                 PAYMENT DUE BY                              11/14/2026\n\nQuestions about your bill? Call Patient Financial Services at (555) 014-2290, Monday-Friday, 8 AM-5 PM.\nFinancial assistance may be available. Ask for an application or visit the Patient Financial Services office, 1st floor.\nAccounts not paid by the due date may be sent to collections.",
+  "results": {
+    "simple": {
+      "is_medical_document": true,
+      "document_type": "Hospital bill",
+      "summary": "This is a bill from Riverside General Hospital for your emergency room visit on September 22, 2026. It says you owe $660.00 by November 14, 2026.",
+      "warning_signs": [],
+      "concerns": [
+        {
+          "severity": "medium",
+          "issue": "The bill says that if you don't pay by November 14, 2026, it may be sent to collections.",
+          "why_it_matters": "Collections can make a bill harder to fix later.",
+          "what_to_do": "If you think something on the bill is wrong, call Patient Financial Services at (555) 014-2290 before November 14, 2026."
+        }
+      ],
+      "key_points": [
+        "This bill is for your emergency room visit on September 22, 2026.",
+        "Your insurance, BlueRiver Health Plan, paid $3,100.00.",
+        "The hospital took $620.00 off because of its deal with your insurance.",
+        "You already paid $50.00 on October 1, 2026. Thank you.",
+        "The bill says you owe $660.00.",
+        "You may be able to get help paying. This is called financial assistance."
+      ],
+      "todos": [
+        {"task": "Pay the bill, or call about it, before the due date.", "when": "by November 14, 2026", "date": "2026-11-14", "time": null},
+        {"task": "Call Patient Financial Services at (555) 014-2290 with questions. They are open Monday to Friday, 8 AM to 5 PM.", "when": null, "date": null, "time": null},
+        {"task": "If you need help paying, ask for a financial assistance application. You can call or visit the office on the 1st floor.", "when": null, "date": null, "time": null}
+      ],
+      "medicines": [],
+      "words_to_know": [
+        {"term": "Patient statement", "meaning": "a bill that shows what you were charged and what has been paid."},
+        {"term": "Guarantor", "meaning": "the person who is responsible for paying the bill."},
+        {"term": "ED", "meaning": "the emergency department, also called the emergency room."},
+        {"term": "CPT", "meaning": "a code that names each service you got."},
+        {"term": "Comprehensive metabolic panel", "meaning": "a blood test."},
+        {"term": "Contractual adjustment", "meaning": "money the hospital takes off the bill because of its deal with your insurance."},
+        {"term": "Collections", "meaning": "when an unpaid bill is sent to a company that tries to get it paid."}
+      ],
+      "questions_for_doctor": [
+        "Did I really get the blood test 2 times?",
+        "Can you check the total charges? They don't add up.",
+        "Can I get an itemized bill that lists every charge?",
+        "Can I get a financial assistance application?"
+      ],
+      "unclear_parts": [],
+      "bill": {
+        "lines": [
+          {"description": "ED visit, level 4 (CPT 99284)", "date": "09/22/2026", "amount": 1250.00, "kind": "charge"},
+          {"description": "CT abdomen/pelvis w/ contrast (CPT 74177)", "date": "09/22/2026", "amount": 2400.00, "kind": "charge"},
+          {"description": "Comprehensive metabolic panel (CPT 80053)", "date": "09/22/2026", "amount": 185.00, "kind": "charge"},
+          {"description": "Comprehensive metabolic panel (CPT 80053)", "date": "09/22/2026", "amount": 185.00, "kind": "charge"},
+          {"description": "IV infusion, initial hour (CPT 96365)", "date": "09/22/2026", "amount": 320.00, "kind": "charge"},
+          {"description": "Insurance payment - BlueRiver Health Plan", "date": "10/05/2026", "amount": 3100.00, "kind": "insurance_paid"},
+          {"description": "Contractual adjustment", "date": "10/05/2026", "amount": 620.00, "kind": "discount_or_adjustment"},
+          {"description": "Patient payment - thank you", "date": "10/01/2026", "amount": 50.00, "kind": "you_paid"}
+        ],
+        "total_charges_stated": 4430.00,
+        "amount_due_stated": 660.00,
+        "shows_all_lines": true
+      }
+    },
+    "very_simple": {
+      "is_medical_document": true,
+      "document_type": "A hospital bill",
+      "summary": "This is a bill for your emergency room visit. It says you owe $660.00.",
+      "warning_signs": [],
+      "concerns": [
+        {
+          "severity": "medium",
+          "issue": "Pay or call by November 14, 2026.",
+          "why_it_matters": "After that, the bill may go to collections.",
+          "what_to_do": "If the bill looks wrong, call (555) 014-2290 before then."
+        }
+      ],
+      "key_points": [
+        "This bill is for your emergency room visit.",
+        "Your insurance paid $3,100.00.",
+        "You paid $50.00 already.",
+        "The bill says you owe $660.00.",
+        "You can ask for help to pay."
+      ],
+      "todos": [
+        {"task": "Pay or call about the bill.", "when": "by November 14, 2026", "date": "2026-11-14", "time": null},
+        {"task": "Call (555) 014-2290 with questions.", "when": "Monday to Friday, 8 AM to 5 PM", "date": null, "time": null},
+        {"task": "Ask for help paying if you need it.", "when": null, "date": null, "time": null}
+      ],
+      "medicines": [],
+      "words_to_know": [
+        {"term": "Guarantor", "meaning": "the person who pays the bill."},
+        {"term": "Contractual adjustment", "meaning": "money taken off because of your insurance."},
+        {"term": "Collections", "meaning": "a company that tries to get unpaid bills paid."}
+      ],
+      "questions_for_doctor": [
+        "Did I get the blood test 2 times?",
+        "Can you check the total?",
+        "Can I get help paying?"
+      ],
+      "unclear_parts": [],
+      "bill": {
+        "lines": [
+          {"description": "ED visit, level 4 (CPT 99284)", "date": "09/22/2026", "amount": 1250.00, "kind": "charge"},
+          {"description": "CT abdomen/pelvis w/ contrast (CPT 74177)", "date": "09/22/2026", "amount": 2400.00, "kind": "charge"},
+          {"description": "Comprehensive metabolic panel (CPT 80053)", "date": "09/22/2026", "amount": 185.00, "kind": "charge"},
+          {"description": "Comprehensive metabolic panel (CPT 80053)", "date": "09/22/2026", "amount": 185.00, "kind": "charge"},
+          {"description": "IV infusion, initial hour (CPT 96365)", "date": "09/22/2026", "amount": 320.00, "kind": "charge"},
+          {"description": "Insurance payment - BlueRiver Health Plan", "date": "10/05/2026", "amount": 3100.00, "kind": "insurance_paid"},
+          {"description": "Contractual adjustment", "date": "10/05/2026", "amount": 620.00, "kind": "discount_or_adjustment"},
+          {"description": "Patient payment - thank you", "date": "10/01/2026", "amount": 50.00, "kind": "you_paid"}
+        ],
+        "total_charges_stated": 4430.00,
+        "amount_due_stated": 660.00,
+        "shows_all_lines": true
+      }
+    }
+  },
+  "questions": [
+    {
+      "question": "How much do I really owe?",
+      "answer": "The bill says you owe $660.00. But the charges listed add up to $4,340.00, not the $4,430.00 the bill shows. Using the lines on the bill, you would owe $570.00. A blood test is also listed 2 times. Call Patient Financial Services at (555) 014-2290 and ask them to check before you pay."
+    },
+    {
+      "question": "How can I get help paying this bill?",
+      "answer": "The bill says financial assistance may be available. You can ask for an application by calling Patient Financial Services at (555) 014-2290, Monday to Friday, 8 AM to 5 PM. You can also visit their office on the 1st floor."
+    },
+    {
+      "question": "What happens if I don't pay by the due date?",
+      "answer": "The bill says accounts not paid by November 14, 2026 may be sent to collections. If you think the bill is wrong, call (555) 014-2290 before that date."
+    }
+  ]
+}

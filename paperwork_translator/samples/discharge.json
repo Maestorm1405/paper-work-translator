@@ -1,0 +1,154 @@
+{
+  "id": "discharge",
+  "order": 1,
+  "title": "Hospital discharge papers",
+  "description": "Instructions for going home after a bladder infection.",
+  "paper_text": "RIVERSIDE GENERAL HOSPITAL\nDISCHARGE INSTRUCTIONS\n\nPatient: Maria Lopez        DOB: 03/14/1991        MRN: 00482931\nAdmit date: 10/26/2026      Discharge date: 10/29/2026\nAttending: J. Okafor, MD\n\nDiagnosis: Acute cystitis (UTI) w/o hematuria. Hx: spastic diplegic cerebral palsy, neurogenic bladder; performs intermittent self-catheterization (ISC) q4-6h.\n\nDISCHARGE MEDICATIONS\n1. Nitrofurantoin monohydrate/macrocrystals 100 mg PO BID x 5 days. Take with food. NEW\n2. Phenazopyridine 200 mg PO TID PRN bladder discomfort x 2 days. May turn urine orange. NEW\n3. Acetaminophen 500 mg 1-2 tabs PO q6h PRN pain or fever. Do not exceed 3,000 mg in 24 hrs.\n4. Baclofen 10 mg PO TID. CONTINUE home dose.\n\nINSTRUCTIONS\n- Complete the full 7-day course of nitrofurantoin even if symptoms resolve.\n- Increase PO fluid intake to 2-3 L/day unless otherwise instructed.\n- Continue ISC q4-6h using clean technique. Use a new catheter each time.\n- Diet: as tolerated.\n- Activity: as tolerated. Resume wheelchair transfers with usual assistance.\n\nFOLLOW-UP\n- PCP (Dr. Ana Patel) in 1 week. Call (555) 010-4471 to schedule.\n- Urology: Riverside Urology, 4th floor, 11/18/2026 at 2:30 PM. Bring catheter supplies list.\n- Urine culture results pending; you will be called if a change in antibiotic is needed.\n\nRETURN PRECAUTIONS\nReturn to the ED or call your PCP for: fever > 101.0 F, flank or back pain, nausea/vomiting with inability to tolerate PO, gross hematuria, new or worsening spasticity, or confusion.\nCall 911 for difficulty breathing, chest pain, or if you cannot be woken.",
+  "results": {
+    "simple": {
+      "is_medical_document": true,
+      "document_type": "Hospital discharge instructions",
+      "summary": "This paper is from Riverside General Hospital. It tells you how to take care of yourself at home after your bladder infection.",
+      "warning_signs": [
+        "Go to the emergency room or call your regular doctor if you have a fever over 101 degrees.",
+        "Go to the emergency room or call your doctor if you have pain in your side or back.",
+        "Go to the emergency room or call your doctor if you feel sick or throw up and can't keep drinks down.",
+        "Go to the emergency room or call your doctor if you see blood in your pee.",
+        "Go to the emergency room or call your doctor if your muscle stiffness is new or getting worse.",
+        "Go to the emergency room or call your doctor if you feel confused.",
+        "Call 911 if you have trouble breathing, chest pain, or if someone can't wake you up."
+      ],
+      "concerns": [
+        {
+          "severity": "high",
+          "issue": "The medicine list says to take nitrofurantoin for 5 days. But the instructions say to finish a 7-day course.",
+          "why_it_matters": "If you stop an antibiotic too early, the infection might not go away.",
+          "what_to_do": "Call your doctor, Dr. Ana Patel, at (555) 010-4471, or ask your pharmacist how many days to take it."
+        },
+        {
+          "severity": "medium",
+          "issue": "Your urine test results were not back yet when you left the hospital.",
+          "why_it_matters": "The results could show that you need a different antibiotic.",
+          "what_to_do": "The hospital says they will call you if you need a change. Answer calls from the hospital, and ask your doctor about the results at your visit."
+        }
+      ],
+      "key_points": [
+        "You were in the hospital from October 26 to October 29, 2026.",
+        "You had a bladder infection. This is also called a UTI.",
+        "You have 2 new medicines for the infection and the discomfort.",
+        "Drink more fluids to help your bladder heal.",
+        "Keep using your catheter like you usually do.",
+        "You can eat what you like and do your usual activities, including transfers with your usual help."
+      ],
+      "todos": [
+        {"task": "Make an appointment with your regular doctor, Dr. Ana Patel. Call (555) 010-4471.", "when": "in 1 week", "date": null, "time": null},
+        {"task": "Go to your appointment at Riverside Urology, on the 4th floor. Urology doctors take care of the bladder.", "when": "November 18, 2026 at 2:30 PM", "date": "2026-11-18", "time": "14:30"},
+        {"task": "Bring a list of your catheter supplies to your urology appointment.", "when": "November 18, 2026", "date": "2026-11-18", "time": null},
+        {"task": "Drink 2 to 3 liters of fluids each day, unless a doctor tells you something different.", "when": "every day", "date": null, "time": null},
+        {"task": "Keep using your catheter every 4 to 6 hours. Use a new catheter each time.", "when": "every 4 to 6 hours", "date": null, "time": null},
+        {"task": "Watch for a call from the hospital about your urine test.", "when": null, "date": null, "time": null}
+      ],
+      "medicines": [
+        {"name": "Nitrofurantoin monohydrate/macrocrystals", "how_to_take": "Take 100 milligrams by mouth, 2 times a day. Take it with food. Keep taking it even if you feel better.", "notes": "New medicine. It treats your bladder infection. The paper says 5 days in one place and 7 days in another, so ask which is right."},
+        {"name": "Phenazopyridine", "how_to_take": "Take 200 milligrams by mouth, up to 3 times a day, only when your bladder hurts. Take it for 2 days.", "notes": "New medicine. It may turn your pee orange. The paper says this can happen."},
+        {"name": "Acetaminophen", "how_to_take": "Take 1 or 2 pills of 500 milligrams by mouth every 6 hours, only when you need it for pain or fever. Do not take more than 3,000 milligrams in 24 hours.", "notes": null},
+        {"name": "Baclofen", "how_to_take": "Keep taking 10 milligrams by mouth, 3 times a day, like you did before.", "notes": "This is a medicine you already take at home."}
+      ],
+      "words_to_know": [
+        {"term": "UTI", "meaning": "urinary tract infection. An infection in the parts of your body that make and store pee."},
+        {"term": "Cystitis", "meaning": "an infection or swelling in your bladder."},
+        {"term": "Neurogenic bladder", "meaning": "a bladder that doesn't get the right signals from your nerves."},
+        {"term": "PRN", "meaning": "only when you need it."},
+        {"term": "PO", "meaning": "by mouth."},
+        {"term": "ED", "meaning": "the emergency department, also called the emergency room."},
+        {"term": "Flank pain", "meaning": "pain in your side, between your ribs and hip."},
+        {"term": "Hematuria", "meaning": "blood in your pee."},
+        {"term": "Spasticity", "meaning": "muscles that are stiff or tight, or that spasm."}
+      ],
+      "questions_for_doctor": [
+        "Should I take nitrofurantoin for 5 days or 7 days?",
+        "Is it OK for me to drink 2 to 3 liters of fluids a day with my bladder routine?",
+        "Who will call me about my urine test, and when?"
+      ],
+      "unclear_parts": [],
+      "bill": null
+    },
+    "very_simple": {
+      "is_medical_document": true,
+      "document_type": "Going home papers from the hospital",
+      "summary": "You had a bladder infection. This paper says how to get better at home.",
+      "warning_signs": [
+        "Get help if your fever is over 101 degrees.",
+        "Get help if your side or back hurts.",
+        "Get help if you throw up and can't drink.",
+        "Get help if you see blood in your pee.",
+        "Get help if your muscles get more stiff.",
+        "Get help if you feel confused.",
+        "To get help, call your doctor or go to the emergency room.",
+        "Call 911 if you can't breathe well.",
+        "Call 911 if your chest hurts.",
+        "Call 911 if someone can't wake you up."
+      ],
+      "concerns": [
+        {
+          "severity": "high",
+          "issue": "One part says take nitrofurantoin for 5 days. Another part says 7 days.",
+          "why_it_matters": "Stopping too soon may not stop the infection.",
+          "what_to_do": "Call Dr. Ana Patel at (555) 010-4471. Or ask your pharmacist."
+        },
+        {
+          "severity": "medium",
+          "issue": "Your pee test is not done yet.",
+          "why_it_matters": "You might need a different medicine.",
+          "what_to_do": "The hospital will call you if you do. Answer their calls."
+        }
+      ],
+      "key_points": [
+        "You had a bladder infection.",
+        "You have new medicine for it.",
+        "Drink lots of fluids.",
+        "Keep using your catheter like before.",
+        "You can eat and move like usual."
+      ],
+      "todos": [
+        {"task": "Call Dr. Ana Patel at (555) 010-4471 to make a visit.", "when": "in 1 week", "date": null, "time": null},
+        {"task": "Go to Riverside Urology, 4th floor.", "when": "November 18, 2026 at 2:30 PM", "date": "2026-11-18", "time": "14:30"},
+        {"task": "Bring a list of your catheter supplies.", "when": "November 18, 2026", "date": "2026-11-18", "time": null},
+        {"task": "Drink 2 to 3 liters each day.", "when": "every day", "date": null, "time": null},
+        {"task": "Use your catheter every 4 to 6 hours.", "when": "every 4 to 6 hours", "date": null, "time": null}
+      ],
+      "medicines": [
+        {"name": "Nitrofurantoin monohydrate/macrocrystals", "how_to_take": "Take 100 milligrams 2 times a day with food.", "notes": "For your infection. Ask if it is 5 or 7 days."},
+        {"name": "Phenazopyridine", "how_to_take": "Take 200 milligrams up to 3 times a day for 2 days. Only if your bladder hurts.", "notes": "Your pee may turn orange."},
+        {"name": "Acetaminophen", "how_to_take": "Take 1 or 2 pills of 500 milligrams every 6 hours if you need it. No more than 3,000 milligrams a day.", "notes": "For pain or fever."},
+        {"name": "Baclofen", "how_to_take": "Keep taking 10 milligrams 3 times a day.", "notes": "You already take this."}
+      ],
+      "words_to_know": [
+        {"term": "UTI", "meaning": "an infection where your pee comes from."},
+        {"term": "PRN", "meaning": "only when you need it."},
+        {"term": "ED", "meaning": "the emergency room."},
+        {"term": "Hematuria", "meaning": "blood in your pee."}
+      ],
+      "questions_for_doctor": [
+        "Do I take nitrofurantoin for 5 days or 7 days?",
+        "When will I get my pee test results?"
+      ],
+      "unclear_parts": [],
+      "bill": null
+    }
+  },
+  "questions": [
+    {
+      "question": "Should I take the antibiotic for 5 days or 7 days?",
+      "answer": "Your paper says both. The medicine list says 5 days, but the instructions say to finish a 7-day course. The paper also says to keep taking it even if you feel better. Call Dr. Ana Patel at (555) 010-4471 or ask your pharmacist which is right."
+    },
+    {
+      "question": "What does PRN mean?",
+      "answer": "PRN means only when you need it. On your paper, phenazopyridine and acetaminophen are PRN. You take them only when you have bladder discomfort, pain, or fever."
+    },
+    {
+      "question": "When should I go to the emergency room?",
+      "answer": "Your paper says to go to the emergency room or call your doctor if you have a fever over 101 degrees, pain in your side or back, can't keep drinks down, see blood in your pee, have new or worse muscle stiffness, or feel confused. Call 911 if you have trouble breathing, chest pain, or can't be woken up."
+    }
+  ]
+}

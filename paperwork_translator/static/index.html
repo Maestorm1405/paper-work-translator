@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Medical Paperwork Translator</title>
+  <script>
+    // Apply saved display settings before the page draws, so it doesn't flash.
+    try {
+      const s = JSON.parse(localStorage.getItem("paperwork-translator-settings") || "{}");
+      const c = document.documentElement.classList;
+      if (s.textSize && s.textSize !== "normal") c.add("text-" + s.textSize);
+      if (s.theme && s.theme !== "auto") c.add("theme-" + s.theme);
+      if (s.spacing) c.add("spacing-wide");
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <h1>Medical Paperwork Translator</h1>
+    <p>Turn confusing medical papers and bills into plain words. You can have them read out loud.</p>
+
+    <details class="settings" id="settings">
+      <summary>Text size and colors</summary>
+      <div class="settings-body">
+        <fieldset>
+          <legend>Text size</legend>
+          <label class="choice"><input type="radio" name="text-size" value="normal"> Normal</label>
+          <label class="choice"><input type="radio" name="text-size" value="large"> Large</label>
+          <label class="choice"><input type="radio" name="text-size" value="xl"> Extra large</label>
+        </fieldset>
+        <fieldset>
+          <legend>Colors</legend>
+          <label class="choice"><input type="radio" name="theme" value="auto"> Match my device</label>
+          <label class="choice"><input type="radio" name="theme" value="light"> Light</label>
+          <label class="choice"><input type="radio" name="theme" value="dark"> Dark</label>
+          <label class="choice"><input type="radio" name="theme" value="contrast"> High contrast</label>
+        </fieldset>
+        <fieldset>
+          <legend>Spacing</legend>
+          <label class="choice"><input type="checkbox" id="spacing" name="spacing"> Extra space between lines, words, and letters</label>
+        </fieldset>
+      </div>
+    </details>
+  </header>
+
+  <main id="main">
+    <section id="input-section" aria-labelledby="input-heading">
+      <h2 id="input-heading">Add your paper</h2>
+
+      <p id="setup-warning" class="notice notice-warning" hidden>
+        This app isn't connected to its translation service yet, so only the sample papers work.
+        To translate your own papers, add an Anthropic API key to the <code>.env</code> file and restart.
+        The README explains how.
+      </p>
+
+      <div class="samples" id="samples" hidden>
+        <h3>No paper handy? Try a sample</h3>
+        <p class="hint">These are made-up papers. They work even without internet.</p>
+        <ul id="sample-list" class="sample-list"></ul>
+      </div>
+
+      <form id="translate-form" novalidate>
+        <div class="field">
+          <label for="file-input">Take a photo of your paper, or choose a photo or PDF</label>
+          <p class="hint" id="file-hint">Make sure all the words are in the picture and easy to see.</p>
+          <input id="file-input" name="file" type="file" accept="image/*,application/pdf" aria-describedby="file-hint">
+          <p id="file-chosen" class="file-chosen" aria-live="polite"></p>
+          <button type="button" id="clear-file" class="button-secondary" hidden>Remove this file</button>
+        </div>
+
+        <p class="divider" aria-hidden="true">or</p>
+
+        <div class="field">
+          <label for="text-input">Type or paste the words from your paper</label>
+          <textarea id="text-input" name="text" rows="7"></textarea>
+        </div>
+
+        <fieldset class="options">
+          <legend>How should we write it?</legend>
+          <div class="field">
+            <label for="language">Language</label>
+            <select id="language" class="language-select"></select>
+          </div>
+          <fieldset class="inner">
+            <legend>Reading level</legend>
+            <label class="choice"><input type="radio" name="reading-level" value="simple" checked> Simple</label>
+            <label class="choice"><input type="radio" name="reading-level" value="very_simple"> Very simple: the shortest sentences</label>
+          </fieldset>
+        </fieldset>
+
+        <p class="privacy">
+          Your paper is sent to Claude, an AI service, so it can be read. This app does not save your paper.
+        </p>
+
+        <button type="submit" id="translate-button" class="button-primary">Translate into plain language</button>
+      </form>
+
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div id="error" class="notice notice-error" role="alert" hidden></div>
+    </section>
+
+    <section id="results" aria-labelledby="results-heading" hidden>
+      <p class="print-only" id="print-header"></p>
+      <h2 id="results-heading" tabindex="-1">Your paper in plain language</h2>
+      <p id="result-notice" class="notice notice-info" hidden></p>
+      <p id="reading-level-note" class="reading-level-note" hidden></p>
+
+      <div class="read-aloud" role="group" aria-labelledby="read-aloud-heading">
+        <h3 id="read-aloud-heading">Read aloud</h3>
+        <div id="read-aloud-controls" class="button-row">
+          <button type="button" id="read-all" class="button-primary">Read everything aloud</button>
+          <button type="button" id="pause-reading" class="button-secondary" disabled>Pause</button>
+          <button type="button" id="stop-reading" class="button-secondary" disabled>Stop</button>
+          <label class="inline-label">
+            Speed
+            <select id="reading-speed">
+              <option value="0.75">Slow</option>
+              <option value="1" selected>Normal</option>
+              <option value="1.25">Fast</option>
+            </select>
+          </label>
+        </div>
+        <p id="voice-warning" class="hint" hidden></p>
+        <p id="read-aloud-unsupported" class="hint" hidden>
+          Your browser can't read text out loud. Try Chrome, Edge, or Safari.
+        </p>
+      </div>
+
+      <div class="button-row result-actions">
+        <button type="button" id="print-button" class="button-secondary">Print or save as PDF</button>
+        <button type="button" id="share-button" class="button-secondary">Share or copy</button>
+        <button type="button" id="calendar-all" class="button-secondary" hidden>Add all dates to my calendar</button>
+      </div>
+
+      <details class="rewrite" id="rewrite">
+        <summary>Change the language or make it simpler</summary>
+        <div class="rewrite-body">
+          <div class="field">
+            <label for="rewrite-language">Language</label>
+            <select id="rewrite-language" class="language-select"></select>
+          </div>
+          <fieldset class="inner">
+            <legend>Reading level</legend>
+            <label class="choice"><input type="radio" name="rewrite-level" value="simple"> Simple</label>
+            <label class="choice"><input type="radio" name="rewrite-level" value="very_simple"> Very simple: the shortest sentences</label>
+          </fieldset>
+          <button type="button" id="rewrite-button" class="button-primary">Translate again</button>
+        </div>
+      </details>
+
+      <div id="results-status" class="status" role="status" aria-live="polite"></div>
+      <div id="results-error" class="notice notice-error" role="alert" hidden></div>
+
+      <div id="results-body"></div>
+
+      <details class="original" id="original-box">
+        <summary>See the words from the original paper</summary>
+        <pre id="original-text" class="original-text"></pre>
+      </details>
+
+      <section id="ask-section" class="ask" aria-labelledby="ask-heading">
+        <h3 id="ask-heading">Ask a question about this paper</h3>
+        <p class="hint">Answers come only from this paper. For medical advice, ask your doctor or pharmacist.</p>
+
+        <div id="suggested" hidden>
+          <p class="suggested-label">Try asking:</p>
+          <ul id="suggested-list" class="suggested-list"></ul>
+        </div>
+
+        <form id="ask-form" novalidate>
+          <label for="question">Your question</label>
+          <textarea id="question" rows="3"></textarea>
+          <div class="button-row">
+            <button type="submit" id="ask-button" class="button-primary">Ask</button>
+            <button type="button" id="mic-button" class="button-secondary" hidden>Speak your question</button>
+          </div>
+          <p id="mic-hint" class="hint" hidden>
+            Speaking a question uses your browser's speech service. You can also use the microphone on your keyboard.
+          </p>
+        </form>
+        <div id="ask-status" class="status" role="status" aria-live="polite"></div>
+        <div id="ask-error" class="notice notice-error" role="alert" hidden></div>
+        <ol id="answers" class="answers"></ol>
+      </section>
+
+      <p class="disclaimer">
+        This is a helper, not medical, legal, or money advice. If anything here is different from your paper,
+        trust the paper and ask your doctor, pharmacist, or billing office.
+      </p>
+
+      <button type="button" id="start-over" class="button-secondary">Translate another paper</button>
+    </section>
+  </main>
+</body>
+</html>
