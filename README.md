@@ -29,12 +29,12 @@ Built for a hackathon on accessibility tools for navigating the medical care sys
 
 ## Try it in 2 minutes
 
-You need Python 3.11 or newer.
+You need Python 3.10 or newer (check with `python3 --version`; get it from [python.org](https://www.python.org/downloads/)).
 
 ```bash
-git clone <this repo's URL>
-cd paperwork-translator
-python -m venv .venv
+git clone https://github.com/Maestorm1405/paper-work-translator.git
+cd paper-work-translator
+python3 -m venv .venv              # Windows: py -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python -m paperwork_translator
