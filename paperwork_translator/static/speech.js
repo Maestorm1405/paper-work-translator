@@ -17,7 +17,7 @@ export function hasVoiceFor(lang) {
 
 // Reads a list of parts ({el, speech, lang}) one at a time, highlighting each part's element as it goes.
 // Short utterances avoid browsers cutting off long text.
-export function createReader({ getRate, onChange }) {
+export function createReader({ getRate, onChange, onPart }) {
   let queue = [];
   let current = null;
   let paused = false;
@@ -41,6 +41,7 @@ export function createReader({ getRate, onChange }) {
       return;
     }
     current = part;
+    onPart?.(part);
     part.el.classList.add("speaking");
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     part.el.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });

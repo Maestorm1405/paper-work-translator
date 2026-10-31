@@ -186,6 +186,27 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .button-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0.75rem 0; }
 .inline-label { display: flex; gap: 0.5rem; align-items: center; }
 
+/* Tabs */
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 0.25rem;
+  border-bottom: 3px solid var(--primary);
+  margin: 0.5rem 0 1rem;
+}
+.tabs [role="tab"] {
+  background: var(--panel); color: var(--text);
+  border: 2px solid var(--border); border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.tabs [role="tab"][aria-selected="true"] { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+.tabs [role="tab"][aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; }
+.tab-badge {
+  min-width: 1.6em; padding: 0 0.4em; border-radius: 999px;
+  background: var(--high); color: var(--bg); font-size: 0.85em; text-align: center;
+}
+[aria-selected="true"] .tab-badge { background: var(--primary-text); color: var(--primary); }
+.tab-panel:focus { outline: none; }
+
 /* Settings */
 .settings { margin-top: 1rem; background: var(--panel); border-radius: 8px; }
 .settings summary, .rewrite summary, .original summary {
@@ -195,6 +216,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   min-height: 48px;
 }
 .settings-body, .rewrite-body { padding: 0 1rem 1rem; }
+.settings h3 { padding: 0.75rem 1rem 0; margin: 0; }
 .settings fieldset { border-color: var(--border); }
 
 /* Samples */
@@ -332,10 +354,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     font-size: 12pt;
   }
   body { line-height: 1.45; letter-spacing: normal; word-spacing: normal; }
-  .site-header, #input-section, #scanner, .read-aloud, .result-actions, .rewrite, .original, #ask-form,
+  .site-header, .tabs, #tabs-hint, #panel-add, #panel-settings, #input-section, #scanner, .read-aloud, .result-actions, .rewrite, .original, #ask-form,
   #suggested, .ask > .hint, .read-section, .calendar, .skip-link, #start-over, .status, .notice-error,
   .reading-level-note { display: none !important; }
   .print-only { display: block; }
+  #results, #results .tab-panel[hidden] { display: block !important; }  /* print every result tab */
+  #check-empty, #todo-empty { display: none !important; }
   main { max-width: none; padding: 0; }
   #print-header { font-weight: 600; margin: 0 0 0.5rem; }
   .result-section { break-inside: avoid; }

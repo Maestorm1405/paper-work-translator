@@ -24,48 +24,20 @@
     <h1>Medical Paperwork Translator</h1>
     <p>Turn confusing medical papers and bills into plain words. You can have them read out loud.</p>
 
-    <details class="settings" id="settings">
-      <summary>Text size and colors</summary>
-      <div class="settings-body">
-        <fieldset>
-          <legend>Text size</legend>
-          <label class="choice"><input type="radio" name="text-size" value="normal"> Normal</label>
-          <label class="choice"><input type="radio" name="text-size" value="large"> Large</label>
-          <label class="choice"><input type="radio" name="text-size" value="xl"> Extra large</label>
-        </fieldset>
-        <fieldset>
-          <legend>Colors</legend>
-          <label class="choice"><input type="radio" name="theme" value="auto"> Match my device</label>
-          <label class="choice"><input type="radio" name="theme" value="light"> Light</label>
-          <label class="choice"><input type="radio" name="theme" value="dark"> Dark</label>
-          <label class="choice"><input type="radio" name="theme" value="contrast"> High contrast</label>
-        </fieldset>
-        <fieldset>
-          <legend>Spacing</legend>
-          <label class="choice"><input type="checkbox" id="spacing" name="spacing"> Extra space between lines, words, and letters</label>
-        </fieldset>
-      </div>
-    </details>
-
-    <details class="settings" id="key-settings" hidden>
-      <summary>Translation service (API key)</summary>
-      <form class="settings-body key-form" id="key-form" novalidate>
-        <p class="hint" id="key-help">
-          The sample papers work without a key. To translate your own papers, paste an Anthropic API key.
-          It is saved only on this computer.
-        </p>
-        <label for="api-key">Anthropic API key</label>
-        <input id="api-key" type="password" autocomplete="off" spellcheck="false" aria-describedby="key-help key-status">
-        <div class="button-row">
-          <button type="submit" class="button-primary">Save key</button>
-          <button type="button" id="remove-key" class="button-secondary">Remove saved key</button>
-        </div>
-        <p id="key-status" class="key-status" role="status" aria-live="polite"></p>
-      </form>
-    </details>
   </header>
 
   <main id="main">
+    <div class="tabs" role="tablist" aria-label="Steps">
+      <button type="button" role="tab" id="tab-add" aria-controls="panel-add" aria-selected="true">Add paper</button>
+      <button type="button" role="tab" id="tab-explained" aria-controls="panel-explained" aria-selected="false" tabindex="-1" aria-disabled="true">Plain language</button>
+      <button type="button" role="tab" id="tab-check" aria-controls="panel-check" aria-selected="false" tabindex="-1" aria-disabled="true">Mistakes <span id="check-badge" class="tab-badge" hidden></span></button>
+      <button type="button" role="tab" id="tab-todo" aria-controls="panel-todo" aria-selected="false" tabindex="-1" aria-disabled="true">To-do and calendar <span id="todo-badge" class="tab-badge" hidden></span></button>
+      <button type="button" role="tab" id="tab-ask" aria-controls="panel-ask" aria-selected="false" tabindex="-1" aria-disabled="true">Ask</button>
+      <button type="button" role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
+    </div>
+    <p id="tabs-hint" class="hint">Add a paper first. Then its explanation, mistakes, and dates appear in the other tabs.</p>
+
+    <div role="tabpanel" id="panel-add" class="tab-panel" aria-labelledby="tab-add" tabindex="-1">
     <section id="input-section" aria-labelledby="input-heading">
       <h2 id="input-heading">Add your paper</h2>
 
@@ -151,6 +123,7 @@
         <button type="button" id="scan-use-files" class="button-secondary" hidden>Choose photos instead</button>
       </div>
     </section>
+    </div>
 
     <section id="results" aria-labelledby="results-heading" hidden>
       <p class="print-only" id="print-header"></p>
@@ -182,7 +155,6 @@
       <div class="button-row result-actions">
         <button type="button" id="print-button" class="button-secondary">Print or save as PDF</button>
         <button type="button" id="share-button" class="button-secondary">Share or copy</button>
-        <button type="button" id="calendar-all" class="button-secondary" hidden>Add all dates to my calendar</button>
       </div>
 
       <details class="rewrite" id="rewrite">
@@ -204,13 +176,28 @@
       <div id="results-status" class="status" role="status" aria-live="polite"></div>
       <div id="results-error" class="notice notice-error" role="alert" hidden></div>
 
-      <div id="results-body"></div>
+      <div role="tabpanel" id="panel-explained" class="tab-panel" aria-labelledby="tab-explained" tabindex="-1">
+        <div id="results-body"></div>
+        <details class="original" id="original-box">
+          <summary>See the words from the original paper</summary>
+          <pre id="original-text" class="original-text"></pre>
+        </details>
+      </div>
 
-      <details class="original" id="original-box">
-        <summary>See the words from the original paper</summary>
-        <pre id="original-text" class="original-text"></pre>
-      </details>
+      <div role="tabpanel" id="panel-check" class="tab-panel" aria-labelledby="tab-check" tabindex="-1" hidden>
+        <div id="check-body"></div>
+        <p id="check-empty" class="notice notice-info" hidden>
+          We didn't find anything to double-check. That doesn't mean the paper is perfect, so still read it carefully.
+        </p>
+      </div>
 
+      <div role="tabpanel" id="panel-todo" class="tab-panel" aria-labelledby="tab-todo" tabindex="-1" hidden>
+        <button type="button" id="calendar-all" class="button-primary" hidden>Add all dates to my calendar</button>
+        <div id="todo-body"></div>
+        <p id="todo-empty" class="notice notice-info" hidden>This paper doesn't list any dates or things to do.</p>
+      </div>
+
+      <div role="tabpanel" id="panel-ask" class="tab-panel" aria-labelledby="tab-ask" tabindex="-1" hidden>
       <section id="ask-section" class="ask" aria-labelledby="ask-heading">
         <h3 id="ask-heading">Ask a question about this paper</h3>
         <p class="hint">Answers come only from this paper. For medical advice, ask your doctor or pharmacist.</p>
@@ -235,6 +222,7 @@
         <div id="ask-error" class="notice notice-error" role="alert" hidden></div>
         <ol id="answers" class="answers"></ol>
       </section>
+      </div>
 
       <p class="disclaimer">
         This is a helper, not medical, legal, or money advice. If anything here is different from your paper,
@@ -243,6 +231,48 @@
 
       <button type="button" id="start-over" class="button-secondary">Translate another paper</button>
     </section>
+    <div role="tabpanel" id="panel-settings" class="tab-panel" aria-labelledby="tab-settings" tabindex="-1" hidden>
+      <h2>Settings</h2>
+    <div class="settings" id="settings">
+      <h3>Text size and colors</h3>
+      <div class="settings-body">
+        <fieldset>
+          <legend>Text size</legend>
+          <label class="choice"><input type="radio" name="text-size" value="normal"> Normal</label>
+          <label class="choice"><input type="radio" name="text-size" value="large"> Large</label>
+          <label class="choice"><input type="radio" name="text-size" value="xl"> Extra large</label>
+        </fieldset>
+        <fieldset>
+          <legend>Colors</legend>
+          <label class="choice"><input type="radio" name="theme" value="auto"> Match my device</label>
+          <label class="choice"><input type="radio" name="theme" value="light"> Light</label>
+          <label class="choice"><input type="radio" name="theme" value="dark"> Dark</label>
+          <label class="choice"><input type="radio" name="theme" value="contrast"> High contrast</label>
+        </fieldset>
+        <fieldset>
+          <legend>Spacing</legend>
+          <label class="choice"><input type="checkbox" id="spacing" name="spacing"> Extra space between lines, words, and letters</label>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="settings" id="key-settings" hidden>
+      <h3>Translation service (API key)</h3>
+      <form class="settings-body key-form" id="key-form" novalidate>
+        <p class="hint" id="key-help">
+          The sample papers work without a key. To translate your own papers, paste an Anthropic API key.
+          It is saved only on this computer.
+        </p>
+        <label for="api-key">Anthropic API key</label>
+        <input id="api-key" type="password" autocomplete="off" spellcheck="false" aria-describedby="key-help key-status">
+        <div class="button-row">
+          <button type="submit" class="button-primary">Save key</button>
+          <button type="button" id="remove-key" class="button-secondary">Remove saved key</button>
+        </div>
+        <p id="key-status" class="key-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+    </div>
   </main>
 </body>
 </html>

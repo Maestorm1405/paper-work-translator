@@ -25,6 +25,59 @@ let sections = []; // [{title, parts: [{el, speech, lang}]}] for read-aloud
 
 setupSettings($("settings"));
 
+// ---------- Tabs ----------
+// Add paper, then the result split into tabs: plain language, mistakes, to-dos, and questions. Settings is always there.
+
+const tabs = [...document.querySelectorAll("[role='tab']")];
+const RESULT_TABS = ["tab-explained", "tab-check", "tab-todo", "tab-ask"];
+
+function selectTab(id, { focus = false } = {}) {
+  const tab = $(id);
+  if (tab.getAttribute("aria-disabled") === "true") {
+    $("tabs-hint").textContent = "Add a paper first, or try a sample. Then this tab will show its results.";
+    $("tabs-hint").setAttribute("role", "status");
+    return;
+  }
+  for (const t of tabs) {
+    const selected = t === tab;
+    t.setAttribute("aria-selected", String(selected));
+    t.tabIndex = selected ? 0 : -1;
+    $(t.getAttribute("aria-controls")).hidden = !selected;
+  }
+  results.hidden = !RESULT_TABS.includes(id);
+  if (focus) tab.focus();
+}
+
+function enableResultTabs(enabled) {
+  for (const id of RESULT_TABS) {
+    if (enabled) $(id).removeAttribute("aria-disabled");
+    else $(id).setAttribute("aria-disabled", "true");
+  }
+  $("tabs-hint").hidden = enabled;
+}
+
+for (const tab of tabs) tab.addEventListener("click", () => selectTab(tab.id));
+
+document.querySelector("[role='tablist']").addEventListener("keydown", (event) => {
+  const usable = tabs.filter((t) => t.getAttribute("aria-disabled") !== "true");
+  const index = usable.indexOf(document.activeElement);
+  if (index < 0) return;
+  const next = {
+    ArrowRight: usable[(index + 1) % usable.length],
+    ArrowLeft: usable[(index - 1 + usable.length) % usable.length],
+    Home: usable[0],
+    End: usable[usable.length - 1],
+  }[event.key];
+  if (!next) return;
+  event.preventDefault();
+  selectTab(next.id, { focus: true });
+});
+
+function badge(id, count) {
+  $(id).textContent = count ? String(count) : "";
+  $(id).hidden = !count;
+}
+
 // ---------- Messages ----------
 
 const resultsShown = () => !results.hidden;
@@ -84,7 +137,7 @@ function setupDesktop() {
   document.documentElement.classList.add("desktop-app");
   $("key-settings").hidden = false;
   $("setup-how").textContent =
-    "To translate your own papers, open \u201cTranslation service (API key)\u201d at the top of this window and paste your key.";
+    "To translate your own papers, open the Settings tab and paste your key under \u201cTranslation service (API key)\u201d.";
   for (const button of document.querySelectorAll(".calendar-download")) button.textContent = "Add to my calendar";
   refreshKeyStatus();
 }
@@ -400,7 +453,7 @@ function contentEl(tag, text, lang) {
   return el;
 }
 
-function addSection(title, items, { urgent = false, intro = null, introLang = null } = {}) {
+function addSection(title, items, { urgent = false, intro = null, introLang = null, container = resultsBody } = {}) {
   if (!items.length && !intro) return null;
   const lang = currentResult.language;
   const section = document.createElement("section");
@@ -423,7 +476,7 @@ function addSection(title, items, { urgent = false, intro = null, introLang = nu
   header.append(heading, readButton);
   section.append(header);
 
-  const entry = { title, parts: [{ el: heading, speech: sentence(title), lang: UI_LANG }] };
+  const entry = { title, container, parts: [{ el: heading, speech: sentence(title), lang: UI_LANG }] };
 
   if (intro) {
     const p = contentEl("p", intro, introLang || lang);
@@ -460,7 +513,7 @@ function addSection(title, items, { urgent = false, intro = null, introLang = nu
 
   readButton.addEventListener("click", () => reader.read(entry.parts));
   sections.push(entry);
-  resultsBody.append(section);
+  container.append(section);
   return section;
 }
 
@@ -597,6 +650,8 @@ function showResults(data) {
   askHistory = [];
   sections = [];
   resultsBody.replaceChildren();
+  $("check-body").replaceChildren();
+  $("todo-body").replaceChildren();
   $("answers").replaceChildren();
   const lang = data.language;
 
@@ -631,8 +686,10 @@ function showResults(data) {
   addSection("Warning signs: when to get help", data.warning_signs.map((text) => ({ text })), { urgent: true });
 
   const hasHigh = data.concerns.some((c) => c.severity === "high");
-  addSection("Things to double-check", concernItems(data.concerns),
-    { urgent: hasHigh, intro: billIntro(data.bill_check), introLang: UI_LANG });
+  const check = addSection("Things to double-check", concernItems(data.concerns),
+    { urgent: hasHigh, intro: billIntro(data.bill_check), introLang: UI_LANG, container: $("check-body") });
+  $("check-empty").hidden = Boolean(check);
+  badge("check-badge", data.concerns.length);
 
   addSection("The main points", data.key_points.map((text) => ({ text })));
 
@@ -640,7 +697,9 @@ function showResults(data) {
     text: todo.task,
     details: todo.when ? [`When: ${todo.when}`] : [],
     extra: calendarControls(todo, i),
-  })));
+  })), { container: $("todo-body") });
+  $("todo-empty").hidden = data.todos.length > 0;
+  badge("todo-badge", data.todos.length);
 
   addSection("Your medicines", data.medicines.map((m) => ({
     text: `${m.name}: ${m.how_to_take}`,
@@ -701,8 +760,9 @@ function showResults(data) {
   const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   $("print-header").textContent = `Plain-language summary of: ${data.document_type}. Made on ${date} with Medical Paperwork Translator.`;
 
-  $("input-section").hidden = true;
-  results.hidden = false;
+  enableResultTabs(true);
+  // Mistakes come first when there are serious ones, so they aren't missed.
+  selectTab(hasHigh ? "tab-check" : "tab-explained");
   $("results-heading").focus();
 }
 
@@ -718,8 +778,10 @@ $("start-over").addEventListener("click", () => {
   $("translate-form").reset();
   clearPages();
   $("question").value = "";
-  results.hidden = true;
-  $("input-section").hidden = false;
+  enableResultTabs(false);
+  badge("check-badge", 0);
+  badge("todo-badge", 0);
+  selectTab("tab-add");
   currentResult = null;
   fileInput.focus();
 });
@@ -789,6 +851,11 @@ const stopButton = $("stop-reading");
 
 const reader = createReader({
   getRate: () => Number($("reading-speed").value),
+  // Reading everything moves through the tabs, showing each part as it is read.
+  onPart: (part) => {
+    const panel = part.el.closest("[role='tabpanel']");
+    if (panel?.hidden) selectTab(panel.getAttribute("aria-labelledby"));
+  },
   onChange: ({ reading, paused }) => {
     pauseButton.disabled = !reading;
     stopButton.disabled = !reading;
@@ -815,7 +882,11 @@ function updateVoiceWarning() {
 }
 if (speechSupported) speechSynthesis.addEventListener?.("voiceschanged", updateVoiceWarning);
 
-$("read-all").addEventListener("click", () => reader.read(sections.flatMap((s) => s.parts)));
+const TAB_ORDER = ["results-body", "check-body", "todo-body"];
+$("read-all").addEventListener("click", () => {
+  const ordered = [...sections].sort((a, b) => TAB_ORDER.indexOf(a.container.id) - TAB_ORDER.indexOf(b.container.id));
+  reader.read(ordered.flatMap((s) => s.parts));
+});
 stopButton.addEventListener("click", () => reader.stop());
 pauseButton.addEventListener("click", () => reader.togglePause());
 
