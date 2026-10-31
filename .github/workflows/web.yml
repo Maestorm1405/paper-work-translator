@@ -1,0 +1,26 @@
+# Publishes the web version (the app's page plus its Python code, run in the browser) to GitHub Pages.
+name: Publish the web version
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 web/build.py
+      - name: Push to the gh-pages branch
+        run: |
+          cd _site
+          git init -q -b gh-pages
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Web version from ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

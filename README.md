@@ -12,6 +12,12 @@ Built for a hackathon on accessibility tools for navigating the medical care sys
 
 ![The app showing a hospital bill in plain language, with a red "Things to double-check" box explaining that the charges add up to $4,340.00 but the bill says $4,430.00](docs/screenshot-bill-check.png)
 
+## Try it on the web
+
+**[Open the web version](https://maestorm1405.github.io/paper-work-translator/)**: nothing to install. It runs entirely in
+your browser, without AI and without an API key. Your papers are read on your device and never uploaded. For the full
+AI translation, other languages, and new questions, download the app below.
+
 ## Download the app
 
 **[Download from the Releases page](https://github.com/Maestorm1405/paper-work-translator/releases/latest)**: a real app
