@@ -195,8 +195,8 @@ class TranslationError(Exception):
 
 
 NOT_SET_UP = (
-    "The translator isn't set up yet, or its API key isn't working. "
-    "Check the Anthropic API key in the .env file (see the README), then restart."
+    "The AI service isn't working right now. Its API key may be missing or wrong. "
+    "You can still try the sample papers."
 )
 TRY_AGAIN = "Something went wrong on the translation service. Please try again."
 

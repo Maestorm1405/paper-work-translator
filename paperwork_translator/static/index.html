@@ -27,25 +27,25 @@
   </header>
 
   <main id="main">
+    <div class="tab-layout">
     <div class="tabs" role="tablist" aria-label="Steps">
       <button type="button" role="tab" id="tab-add" aria-controls="panel-add" aria-selected="true">Add paper</button>
-      <button type="button" role="tab" id="tab-explained" aria-controls="panel-explained" aria-selected="false" tabindex="-1" aria-disabled="true">Plain language</button>
-      <button type="button" role="tab" id="tab-check" aria-controls="panel-check" aria-selected="false" tabindex="-1" aria-disabled="true">Mistakes <span id="check-badge" class="tab-badge" hidden></span></button>
-      <button type="button" role="tab" id="tab-todo" aria-controls="panel-todo" aria-selected="false" tabindex="-1" aria-disabled="true">To-do and calendar <span id="todo-badge" class="tab-badge" hidden></span></button>
-      <button type="button" role="tab" id="tab-ask" aria-controls="panel-ask" aria-selected="false" tabindex="-1" aria-disabled="true">Ask</button>
+      <button type="button" role="tab" id="tab-explained" aria-controls="panel-explained" aria-selected="false" tabindex="-1">Plain language</button>
+      <button type="button" role="tab" id="tab-check" aria-controls="panel-check" aria-selected="false" tabindex="-1">Mistakes <span id="check-badge" class="tab-badge" hidden></span></button>
+      <button type="button" role="tab" id="tab-todo" aria-controls="panel-todo" aria-selected="false" tabindex="-1">To-do and calendar <span id="todo-badge" class="tab-badge" hidden></span></button>
+      <button type="button" role="tab" id="tab-ask" aria-controls="panel-ask" aria-selected="false" tabindex="-1">Ask</button>
       <button type="button" role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
     </div>
-    <p id="tabs-hint" class="hint">Add a paper first. Then its explanation, mistakes, and dates appear in the other tabs.</p>
+    <div class="tab-content">
+    <div id="empty-state" class="notice notice-info empty-state" hidden>
+      <h2 id="empty-heading" tabindex="-1">Nothing here yet</h2>
+      <p>Add a paper first, or try one of the sample papers. Then this tab shows what we found.</p>
+      <button type="button" id="go-add" class="button-primary">Go to Add paper</button>
+    </div>
 
     <div role="tabpanel" id="panel-add" class="tab-panel" aria-labelledby="tab-add" tabindex="-1">
     <section id="input-section" aria-labelledby="input-heading">
       <h2 id="input-heading">Add your paper</h2>
-
-      <p id="setup-warning" class="notice notice-warning" hidden>
-        This app isn't connected to its translation service yet, so only the sample papers work.
-        <span id="setup-how">To translate your own papers, add an Anthropic API key to the <code>.env</code> file and restart.
-        The README explains how.</span>
-      </p>
 
       <div class="samples" id="samples" hidden>
         <h3>No paper handy? Try a sample</h3>
@@ -256,12 +256,12 @@
       </div>
     </div>
 
-    <div class="settings" id="key-settings" hidden>
-      <h3>Translation service (API key)</h3>
+    <details class="settings" id="key-settings" hidden>
+      <summary>Advanced: AI key (optional)</summary>
       <form class="settings-body key-form" id="key-form" novalidate>
         <p class="hint" id="key-help">
-          The sample papers work without a key. To translate your own papers, paste an Anthropic API key.
-          It is saved only on this computer.
+          The sample papers work without this. Reading your own papers uses Claude, an AI service, which needs
+          an Anthropic API key. It is saved only on this computer.
         </p>
         <label for="api-key">Anthropic API key</label>
         <input id="api-key" type="password" autocomplete="off" spellcheck="false" aria-describedby="key-help key-status">
@@ -271,6 +271,8 @@
         </div>
         <p id="key-status" class="key-status" role="status" aria-live="polite"></p>
       </form>
+    </details>
+    </div>
     </div>
     </div>
   </main>

@@ -21,6 +21,7 @@ let lastRequest = null; // {sampleId} or {files, text}, so "Translate again" can
 let pages = []; // [{file, url, problem}] photos or PDFs of the paper, in page order
 let maxFiles = 10;
 let askHistory = [];
+let keyConfigured = true; // updated from the app; only your own papers need the AI key
 let sections = []; // [{title, parts: [{el, speech, lang}]}] for read-aloud
 
 setupSettings($("settings"));
@@ -33,40 +34,40 @@ const RESULT_TABS = ["tab-explained", "tab-check", "tab-todo", "tab-ask"];
 
 function selectTab(id, { focus = false } = {}) {
   const tab = $(id);
-  if (tab.getAttribute("aria-disabled") === "true") {
-    $("tabs-hint").textContent = "Add a paper first, or try a sample. Then this tab will show its results.";
-    $("tabs-hint").setAttribute("role", "status");
-    return;
-  }
   for (const t of tabs) {
     const selected = t === tab;
     t.setAttribute("aria-selected", String(selected));
     t.tabIndex = selected ? 0 : -1;
     $(t.getAttribute("aria-controls")).hidden = !selected;
   }
-  results.hidden = !RESULT_TABS.includes(id);
+  // Result tabs say what to do until there is a paper to show.
+  const resultTab = RESULT_TABS.includes(id);
+  results.hidden = !resultTab || !currentResult;
+  $("empty-state").hidden = !resultTab || Boolean(currentResult);
   if (focus) tab.focus();
 }
 
-function enableResultTabs(enabled) {
-  for (const id of RESULT_TABS) {
-    if (enabled) $(id).removeAttribute("aria-disabled");
-    else $(id).setAttribute("aria-disabled", "true");
-  }
-  $("tabs-hint").hidden = enabled;
-}
+$("go-add").addEventListener("click", () => selectTab("tab-add", { focus: true }));
+
+// Side tabs on wide screens go up and down; on narrow screens they wrap along the top.
+const sideTabs = matchMedia("(min-width: 60rem)");
+const setOrientation = () =>
+  document.querySelector("[role='tablist']").setAttribute("aria-orientation", sideTabs.matches ? "vertical" : "horizontal");
+setOrientation();
+sideTabs.addEventListener?.("change", setOrientation);
 
 for (const tab of tabs) tab.addEventListener("click", () => selectTab(tab.id));
 
 document.querySelector("[role='tablist']").addEventListener("keydown", (event) => {
-  const usable = tabs.filter((t) => t.getAttribute("aria-disabled") !== "true");
-  const index = usable.indexOf(document.activeElement);
+  const index = tabs.indexOf(document.activeElement);
   if (index < 0) return;
+  const after = tabs[(index + 1) % tabs.length];
+  const before = tabs[(index - 1 + tabs.length) % tabs.length];
   const next = {
-    ArrowRight: usable[(index + 1) % usable.length],
-    ArrowLeft: usable[(index - 1 + usable.length) % usable.length],
-    Home: usable[0],
-    End: usable[usable.length - 1],
+    ArrowRight: after, ArrowDown: after,
+    ArrowLeft: before, ArrowUp: before,
+    Home: tabs[0],
+    End: tabs[tabs.length - 1],
   }[event.key];
   if (!next) return;
   event.preventDefault();
@@ -128,7 +129,7 @@ async function refreshKeyStatus() {
   const { configured } = await desktopApi().api_key_status();
   $("key-status").textContent = configured ? "A key is saved on this computer." : "No key saved yet.";
   $("remove-key").hidden = !configured;
-  $("setup-warning").hidden = configured;
+  keyConfigured = configured;
 }
 
 function setupDesktop() {
@@ -136,8 +137,6 @@ function setupDesktop() {
   desktopReady = true;
   document.documentElement.classList.add("desktop-app");
   $("key-settings").hidden = false;
-  $("setup-how").textContent =
-    "To translate your own papers, open the Settings tab and paste your key under \u201cTranslation service (API key)\u201d.";
   for (const button of document.querySelectorAll(".calendar-download")) button.textContent = "Add to my calendar";
   refreshKeyStatus();
 }
@@ -187,7 +186,7 @@ function fillLanguageSelect(select) {
 fetch("/api/config")
   .then((r) => r.json())
   .then((config) => {
-    $("setup-warning").hidden = config.api_key_configured;
+    keyConfigured = config.api_key_configured;
     maxFiles = config.max_files || maxFiles;
     languages = config.languages;
     for (const select of document.querySelectorAll(".language-select")) fillLanguageSelect(select);
@@ -378,6 +377,34 @@ async function prepareFile(file) {
 
 let busy = false;
 
+// ---------- Reading photos without AI ----------
+// A text reader (Tesseract) that runs inside the app, offline. It loads the first time it's needed.
+
+let photoReader = null;
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("The photo reader couldn't load. Please restart the app."));
+    document.head.append(script);
+  });
+}
+
+async function readPhotoWords(file, number, total) {
+  setStatus(`Reading the words on page ${number} of ${total}. This can take a little while.`);
+  if (!photoReader) {
+    if (!window.Tesseract) await loadScript("vendor/tesseract/tesseract.min.js");
+    const base = new URL("vendor/tesseract/", location.href).href;
+    photoReader = await window.Tesseract.createWorker("eng", 1, {
+      workerPath: `${base}worker.min.js`, corePath: base, langPath: `${base}lang`, workerBlobURL: false,
+    });
+  }
+  const { data } = await photoReader.recognize(file);
+  return data.text;
+}
+
 async function runTranslation(request, language, readingLevel, button) {
   if (busy) return;
   busy = true;
@@ -394,8 +421,16 @@ async function runTranslation(request, language, readingLevel, button) {
   try {
     const body = new FormData();
     if (request.sampleId) body.append("sample_id", request.sampleId);
-    for (const file of request.files || []) body.append("files", await prepareFile(file));
-    if (request.text) body.append("text", request.text);
+    // Without an AI key, photos are read right here on this computer and sent as words.
+    const readHere = !keyConfigured && !request.sampleId;
+    const files = request.files || [];
+    const photoWords = [];
+    for (const [i, file] of files.entries()) {
+      if (readHere && file.type.startsWith("image/")) photoWords.push(await readPhotoWords(file, i + 1, files.length));
+      else body.append("files", await prepareFile(file));
+    }
+    const words = [request.text, ...photoWords].filter(Boolean).join("\n\n");
+    if (words) body.append("text", words);
     body.append("language", language);
     body.append("reading_level", readingLevel);
     const response = await fetch("/api/translate", { method: "POST", body });
@@ -760,7 +795,6 @@ function showResults(data) {
   const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   $("print-header").textContent = `Plain-language summary of: ${data.document_type}. Made on ${date} with Medical Paperwork Translator.`;
 
-  enableResultTabs(true);
   // Mistakes come first when there are serious ones, so they aren't missed.
   selectTab(hasHigh ? "tab-check" : "tab-explained");
   $("results-heading").focus();
@@ -778,11 +812,10 @@ $("start-over").addEventListener("click", () => {
   $("translate-form").reset();
   clearPages();
   $("question").value = "";
-  enableResultTabs(false);
   badge("check-badge", 0);
   badge("todo-badge", 0);
-  selectTab("tab-add");
   currentResult = null;
+  selectTab("tab-add");
   fileInput.focus();
 });
 

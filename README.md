@@ -39,6 +39,7 @@ your API key on your computer only. Set the key under **Translation service (API
 | **Print or share** | A clean one-page summary with lines for notes, to bring to an appointment or send to a caregiver. |
 | **Display settings** | Large and extra-large text, light, dark, and high-contrast colors, and extra spacing between lines, words, and letters. Saved in the browser. |
 | **Camera scanner** | Scan one page or many with the camera. Each picture is checked, and the app tells you (out loud if you like) when it's too dark or blurry. |
+| **Works with no API key** | Without a key, your own papers are read on your computer, offline: photos with a built-in text reader ([Tesseract](https://github.com/naptha/tesseract.js)), PDFs from their text. It explains abbreviations and medical words, finds medicines, dates, warning signs, and phone numbers, and runs the same bill math check. With a key, Claude gives a full plain-language translation. |
 | **Works offline for demos** | Three made-up sample papers work with no API key and no internet. |
 
 ## Try it in 2 minutes

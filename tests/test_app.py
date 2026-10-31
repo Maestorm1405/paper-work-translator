@@ -61,9 +61,12 @@ class FakeClient:
         self.beta = SimpleNamespace(messages=SimpleNamespace(stream=stream))
 
 
-def make(fake, monkeypatch, **env):
-    for key in ("TRANSLATOR_MODEL", "TRANSLATOR_EFFORT", "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):
-        monkeypatch.delenv(key, raising=False)
+def make(fake, monkeypatch, key=True, **env):
+    """A test app. With key=False there is no AI key, so own papers are read on this computer."""
+    for name in ("TRANSLATOR_MODEL", "TRANSLATOR_EFFORT", "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):
+        monkeypatch.delenv(name, raising=False)
+    if key:
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
     for key, value in env.items():
         monkeypatch.setenv(key, value)
     monkeypatch.setattr("paperwork_translator.app.load_dotenv", lambda: None)
@@ -270,7 +273,7 @@ def test_api_errors_become_friendly_messages(monkeypatch, error, status, phrase)
 
 def test_samples_work_without_an_api_key(monkeypatch):
     fake = FakeClient()
-    client = make(fake, monkeypatch)
+    client = make(fake, monkeypatch, key=False)
     for level in ("simple", "very_simple"):
         body = client.post("/api/translate", data={"sample_id": "discharge", "reading_level": level}).json()
         assert body["source"] == "sample" and body["reading_level"] == level
@@ -281,7 +284,7 @@ def test_samples_work_without_an_api_key(monkeypatch):
 
 def test_sample_in_other_language_without_key_falls_back_to_english(monkeypatch):
     fake = FakeClient()
-    body = make(fake, monkeypatch).post("/api/translate", data={"sample_id": "denial", "language": "es"}).json()
+    body = make(fake, monkeypatch, key=False).post("/api/translate", data={"sample_id": "denial", "language": "es"}).json()
     assert body["language"] == "en"
     assert "isn't set up" in body["notice"]
     assert fake.calls == []
@@ -319,7 +322,7 @@ def test_samples_score_lower_reading_level_than_the_original(monkeypatch):
 
 
 def test_config_lists_languages_levels_and_samples(monkeypatch):
-    config = make(FakeClient(), monkeypatch).get("/api/config").json()
+    config = make(FakeClient(), monkeypatch, key=False).get("/api/config").json()
     assert config["api_key_configured"] is False
     assert {"code": "ar", "name": "Arabic", "native_name": "العربية", "rtl": True} in config["languages"]
     assert [lvl["code"] for lvl in config["reading_levels"]] == ["simple", "very_simple"]
@@ -339,7 +342,7 @@ def ask_body(**overrides):
 def test_suggested_sample_questions_are_answered_without_a_key(monkeypatch):
     fake = FakeClient()
     body = ask_body(question="  how much do I really owe ", sample_id="bill")
-    response = make(fake, monkeypatch).post("/api/ask", json=body)
+    response = make(fake, monkeypatch, key=False).post("/api/ask", json=body)
     assert response.status_code == 200
     assert response.json()["source"] == "sample"
     assert "$570.00" in response.json()["answer"]
@@ -347,7 +350,7 @@ def test_suggested_sample_questions_are_answered_without_a_key(monkeypatch):
 
 
 def test_other_questions_need_the_service(monkeypatch):
-    response = make(FakeClient(), monkeypatch).post("/api/ask", json=ask_body(sample_id="bill"))
+    response = make(FakeClient(), monkeypatch, key=False).post("/api/ask", json=ask_body(sample_id="bill"))
     assert response.status_code == 503
     assert "sample" in response.json()["error"]
 
@@ -409,3 +412,37 @@ def test_schema_is_api_compatible():
                 check(value)
 
     check(OUTPUT_SCHEMA)
+
+
+# ---------- Reading without an AI key ----------
+
+
+def test_pasted_bill_is_read_and_checked_without_a_key(monkeypatch):
+    fake = FakeClient()
+    paper = json.loads(open("paperwork_translator/samples/bill.json").read())["paper_text"]
+    body = make(fake, monkeypatch, key=False).post("/api/translate", data={"text": paper}).json()
+    assert body["source"] == "local" and "without AI" in body["notice"]
+    math = [c["issue"] for c in body["concerns"] if c["source"] == "math_check"]
+    assert len(math) == 3 and "$4,340.00" in math[0] and "$570.00" in math[1]
+    assert body["todos"][0]["date"] == "2026-11-14"
+    assert fake.calls == []
+
+
+def test_discharge_paper_without_a_key_explains_abbreviations_and_finds_conflicts(monkeypatch):
+    paper = json.loads(open("paperwork_translator/samples/discharge.json").read())["paper_text"]
+    body = make(FakeClient(), monkeypatch, key=False).post("/api/translate", data={"text": paper, "language": "es"}).json()
+    assert body["language"] == "en" and "Other languages" in body["notice"]
+    assert "By mouth 2 times a day for 5 days" in body["medicines"][0]["how_to_take"]
+    assert any("5 days and 7 days" in c["issue"] for c in body["concerns"])
+    assert {"2026-11-18"} <= {t["date"] for t in body["todos"]} and any(t["time"] == "14:30" for t in body["todos"])
+    assert any("911" in w for w in body["warning_signs"])
+
+
+def test_photos_without_a_key_must_be_read_by_the_page(monkeypatch):
+    response = make(FakeClient(), monkeypatch, key=False).post("/api/translate", files={"files": ("p.png", PNG, "image/png")})
+    assert response.status_code == 422
+
+
+def test_pdf_without_text_explains_what_to_do(monkeypatch):
+    response = make(FakeClient(), monkeypatch, key=False).post("/api/translate", files={"files": ("p.pdf", PDF, "application/pdf")})
+    assert response.status_code == 422 and "photos" in response.json()["error"]

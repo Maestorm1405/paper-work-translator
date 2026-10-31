@@ -206,6 +206,25 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 [aria-selected="true"] .tab-badge { background: var(--primary-text); color: var(--primary); }
 .tab-panel:focus { outline: none; }
+.empty-state h2 { margin-top: 0.25rem; }
+
+/* Wide screens: tabs down the left side, content on the right. */
+@media (min-width: 60rem) {
+  .site-header, main { max-width: 68rem; }
+  .tab-layout { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  .tabs {
+    flex-direction: column; flex-wrap: nowrap; gap: 0.4rem;
+    border-bottom: none; margin: 0;
+    position: sticky; top: 1rem;
+  }
+  .tabs [role="tab"] {
+    border-bottom: 2px solid var(--border); border-radius: 8px;
+    justify-content: space-between; text-align: start; width: 100%;
+  }
+  .tabs [role="tab"][aria-selected="true"] { border-color: var(--primary); }
+  .tab-content > section > h2:first-child, .tab-content > div > h2:first-child { margin-top: 0.25rem; }
+}
+:root.text-xl .tab-layout { grid-template-columns: 19rem minmax(0, 1fr); }
 
 /* Settings */
 .settings { margin-top: 1rem; background: var(--panel); border-radius: 8px; }
@@ -354,13 +373,14 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     font-size: 12pt;
   }
   body { line-height: 1.45; letter-spacing: normal; word-spacing: normal; }
-  .site-header, .tabs, #tabs-hint, #panel-add, #panel-settings, #input-section, #scanner, .read-aloud, .result-actions, .rewrite, .original, #ask-form,
+  .site-header, .tabs, #empty-state, #panel-add, #panel-settings, #input-section, #scanner, .read-aloud, .result-actions, .rewrite, .original, #ask-form,
   #suggested, .ask > .hint, .read-section, .calendar, .skip-link, #start-over, .status, .notice-error,
   .reading-level-note { display: none !important; }
   .print-only { display: block; }
   #results, #results .tab-panel[hidden] { display: block !important; }  /* print every result tab */
   #check-empty, #todo-empty { display: none !important; }
   main { max-width: none; padding: 0; }
+  .tab-layout { display: block !important; }
   #print-header { font-weight: 600; margin: 0 0 0.5rem; }
   .result-section { break-inside: avoid; }
   .ask:not(:has(.answer)) { display: none; }

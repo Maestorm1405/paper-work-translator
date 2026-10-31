@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .checks import check_bill, plain_text, reading_grade
+from .local_reader import explain, pdf_text
 from .translator import (
     DEFAULT_EFFORT,
     DEFAULT_MODEL,
@@ -215,6 +216,25 @@ def create_app(client_factory: Callable[[], anthropic.Anthropic] | None = None) 
             return _error("That's a lot of text. Please paste one or two pages at a time.", 413)
         if not uploads and text is None:
             return _error("Please add a photo or PDF of your paper, or paste its words.", 400)
+
+        if not key_configured():
+            # No AI key: read the paper on this computer. Photos arrive as text, read by the page itself.
+            if any(media_type != PDF_TYPE for _, media_type in uploads):
+                return _error("Photos are read on this computer first. Please reload the app and try again.", 422)
+            try:
+                words = "\n\n".join([text or "", *(pdf_text(data) for data, _ in uploads)]).strip()
+            except Exception:
+                log.exception("Couldn't read PDF")
+                words = (text or "").strip()
+            if len(words.split()) < 3:
+                return _error("We couldn't find words in this file. If it is a scan, take photos of the pages "
+                              "instead, or paste the words.", 422)
+            notice = ("Read on this computer without AI, so it is simpler than a full translation. "
+                      "Check the original paper for anything that matters.")
+            if language != "en":
+                notice += " Other languages need the AI, so this is in English."
+            return finish(explain(words[:MAX_TEXT_CHARS], reading_level), source="local", notice=notice,
+                          language="en", reading_level=reading_level)
 
         try:
             result = translate(make_client(), text=text, files=uploads, model=model, effort=effort, **style)
